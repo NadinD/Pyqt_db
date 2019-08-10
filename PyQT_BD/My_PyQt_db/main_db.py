@@ -57,28 +57,63 @@ class Services_win(QDialog,Ui_Dialog_services):
 
     def bt_del_services(self):
         a = []
+        if self.tableSevices.selectedItems():
+            for currentQTableWidgetItem in self.tableSevices.selectedItems():
+                a.append(currentQTableWidgetItem.text())
+            #     print(currentQTableWidgetItem.row(), currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
+            print(a)
+            # Удаление строки
+            sql = 'DELETE FROM  services WHERE id  =' + str(a[0])
+            # QMessageBox.information(self, 'Remove item', sql)
+            # with sqlite3.connect('ProblemDB.db') as con:
+            self.con = sqlite3.connect('ProblemDB.db')
+            # QMessageBox.information(self, 'соединение с базой', 'соединение с базой')
 
-        for currentQTableWidgetItem in self.tableSevices.selectedItems():
-            a.append(currentQTableWidgetItem.text())
-        #     print(currentQTableWidgetItem.row(), currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
-        print(a)
-        # Удаление строки
-        sql = 'DELETE FROM  services WHERE id  =' + str(a[0])
-        # QMessageBox.information(self, 'Remove item', sql)
-        # with sqlite3.connect('ProblemDB.db') as con:
-        self.con = sqlite3.connect('ProblemDB.db')
-        # QMessageBox.information(self, 'соединение с базой', 'соединение с базой')
-
-        self.con.execute(sql)
-        # QMessageBox.information(self, 'соединение с базой', '2')
-        self.con.commit()
-        # QMessageBox.information(self, 'соединение с базой', '3')
-        self.tableSevices.removeRow(currentQTableWidgetItem.row())
+            self.con.execute(sql)
+            # QMessageBox.information(self, 'соединение с базой', '2')
+            self.con.commit()
+            # QMessageBox.information(self, 'соединение с базой', '3')
+            self.tableSevices.removeRow(currentQTableWidgetItem.row())
 
     def bt_upd_services(self):
+        # self.tableSevices.setItem(0, 0, QTableWidgetItem('5'))
         dial_upd= Services_up_win(self)
-        dial_upd.show()
-        # self.dialog.hide()
+        a = []
+        table = self.tableSevices
+
+        if table.selectedItems():
+            for currentQTableWidgetItem in table.selectedItems():
+                a.append(currentQTableWidgetItem.text())
+            dial_upd.lineEdit.setText(str(a[1]))
+            if dial_upd.exec():
+                sql = """UPDATE  services SET name ='"""+str(dial_upd.lineEdit.text())+"""' WHERE id  =""" + str(a[0])
+                QMessageBox.information(self, 'update item', sql)
+                # with sqlite3.connect('ProblemDB.db') as con:
+                self.con = sqlite3.connect('ProblemDB.db')
+                # QMessageBox.information(self, 'соединение с базой', 'соединение с базой')
+
+                self.con.execute(sql)
+                # QMessageBox.information(self, 'соединение с базой', '2')
+                self.con.commit()
+                self.tableSevices.setItem(currentQTableWidgetItem.row(), 1,
+                                          QTableWidgetItem(dial_upd.lineEdit.text()))
+                # QMessageBox.information(self, 'проверка', dial_upd.lineEdit.text())
+                # QMessageBox.information(self, 'проверка', str(currentQTableWidgetItem.row()))
+
+                # table.setItem(currentQTableWidgetItem.row(), 1, QTableWidgetItem(dial_upd.lineEdit.text())
+                # table.setItem(4,1,'8')
+                # table.setItem(4, 1,'8')
+            # dial_upd.show()
+            # self.dialog.hide()
+
+    def closeEvent(self, event):
+        """
+        при закрытии окна показать главное окно
+        """
+        wnd.show()
+
+
+
 
 class Services_up_win(QDialog,Ui_Dialog):
     def __init__(self, *args):
@@ -86,11 +121,9 @@ class Services_up_win(QDialog,Ui_Dialog):
         self.setupUi(self)
 
 
-def closeEvent(self, event):
-        """
-        при закрытии окна показать главное окно
-        """
-        wnd.show()
+
+
+
 
 
 if __name__ == '__main__':
