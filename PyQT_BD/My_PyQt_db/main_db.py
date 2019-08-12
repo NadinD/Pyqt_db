@@ -74,6 +74,9 @@ class Services_win(QDialog,Ui_Dialog_services):
             self.con.commit()
             # QMessageBox.information(self, 'соединение с базой', '3')
             self.tableSevices.removeRow(currentQTableWidgetItem.row())
+        else:
+            QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
+
 
     def bt_upd_services(self):
         # self.tableSevices.setItem(0, 0, QTableWidgetItem('5'))
@@ -99,12 +102,10 @@ class Services_win(QDialog,Ui_Dialog_services):
                                           QTableWidgetItem(dial_upd.lineEdit.text()))
                 # QMessageBox.information(self, 'проверка', dial_upd.lineEdit.text())
                 # QMessageBox.information(self, 'проверка', str(currentQTableWidgetItem.row()))
-
-                # table.setItem(currentQTableWidgetItem.row(), 1, QTableWidgetItem(dial_upd.lineEdit.text())
-                # table.setItem(4,1,'8')
-                # table.setItem(4, 1,'8')
             # dial_upd.show()
             # self.dialog.hide()
+        else:
+           QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
 
     def closeEvent(self, event):
         """
