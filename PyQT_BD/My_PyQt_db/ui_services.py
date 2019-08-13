@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog_services(object):
     def setupUi(self, Dialog_services):
         Dialog_services.setObjectName("Dialog_services")
-        Dialog_services.resize(747, 432)
+        Dialog_services.resize(747, 340)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog_services)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -55,12 +55,12 @@ class Ui_Dialog_services(object):
         self.btServicesDel.setFont(font)
         self.btServicesDel.setObjectName("btServicesDel")
         self.verticalLayout.addWidget(self.btServicesDel)
-        self.btServicdesFind = QtWidgets.QPushButton(Dialog_services)
+        self.btServicesFind = QtWidgets.QPushButton(Dialog_services)
         font = QtGui.QFont()
         font.setPointSize(12)
-        self.btServicdesFind.setFont(font)
-        self.btServicdesFind.setObjectName("btServicdesFind")
-        self.verticalLayout.addWidget(self.btServicdesFind)
+        self.btServicesFind.setFont(font)
+        self.btServicesFind.setObjectName("btServicesFind")
+        self.verticalLayout.addWidget(self.btServicesFind)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.horizontalLayout.addLayout(self.verticalLayout)
@@ -79,5 +79,5 @@ class Ui_Dialog_services(object):
         self.btServicesAdd.setText(_translate("Dialog_services", "Добавить строку ..."))
         self.btServicesUpdate.setText(_translate("Dialog_services", "Обновить строку ..."))
         self.btServicesDel.setText(_translate("Dialog_services", "Удалить строку ..."))
-        self.btServicdesFind.setText(_translate("Dialog_services", "Поиск ..."))
+        self.btServicesFind.setText(_translate("Dialog_services", "Поиск ..."))
 

@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog_services</class>
- <widget class="QDialog" name="Dialog_services">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>747</width>
-    <height>340</height>
+    <width>924</width>
+    <height>515</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Сервисные службы</string>
+   <string>Dialog</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QTableWidget" name="tableSevices">
+      <widget class="QTableWidget" name="tableUser">
        <property name="font">
         <font>
          <family>Arial</family>
@@ -36,7 +36,7 @@
         <number>0</number>
        </property>
        <property name="columnCount">
-        <number>2</number>
+        <number>5</number>
        </property>
        <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
         <bool>true</bool>
@@ -46,12 +46,27 @@
        </attribute>
        <column>
         <property name="text">
-         <string>№</string>
+         <string>Таб. №</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>Название сервисной службы</string>
+         <string>ФИО</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Дата рождения</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Пол</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Подразделение</string>
         </property>
        </column>
       </widget>
@@ -59,7 +74,7 @@
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QPushButton" name="btServicesAdd">
+        <widget class="QPushButton" name="btUserAdd">
          <property name="font">
           <font>
            <pointsize>12</pointsize>
@@ -71,7 +86,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="btServicesUpdate">
+        <widget class="QPushButton" name="btUserUpdate">
          <property name="font">
           <font>
            <pointsize>12</pointsize>
@@ -83,7 +98,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="btServicesDel">
+        <widget class="QPushButton" name="btUsersDel">
          <property name="font">
           <font>
            <pointsize>12</pointsize>
@@ -95,7 +110,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="btServicesFind">
+        <widget class="QPushButton" name="btUserFind">
          <property name="font">
           <font>
            <pointsize>12</pointsize>
