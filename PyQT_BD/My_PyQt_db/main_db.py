@@ -1,6 +1,7 @@
 import sqlite3
 import sys
 
+from PyQt5.QtCore import QDate
 from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QInputDialog, QTableWidgetItem, QMessageBox
 from PyQT_BD.My_PyQt_db.ui_main import Ui_MainWindow
 
@@ -8,6 +9,7 @@ from PyQT_BD.My_PyQt_db.ui_services import Ui_Dialog_services
 from PyQT_BD.My_PyQt_db.ui_services_update import Ui_Dialog
 from PyQT_BD.My_PyQt_db.ui_user import Ui_Dialog_user
 from PyQT_BD.My_PyQt_db.ui_user_new import Ui_Dialog_user_new
+from PyQT_BD.My_PyQt_db.ui_user_update import Ui_Dialog_user_update
 
 
 class Window(QMainWindow, Ui_MainWindow):
@@ -50,7 +52,6 @@ class User_win(QDialog, Ui_Dialog_user):
     """
     Окно программы "Сотрудники"
     """
-
     def __init__(self, *args):
         super().__init__(*args)
         self.setupUi(self)
@@ -71,10 +72,14 @@ class User_win(QDialog, Ui_Dialog_user):
         self.btUserAdd.clicked.connect(self.bt_add_user)
         # Нажата кнопка "Удалить строку" на форме "Сотрудники"
         self.btUserDel.clicked.connect(self.bt_del_user)
-        # # Нажата кнопка "Обновить строку" на форме "Сотрудники"
-        # self.btUserUpdate.clicked.connect(self.bt_upd_user)
+        # Нажата кнопка "Обновить строку" на форме "Сотрудники"
+        self.btUserUpdate.clicked.connect(self.bt_upd_user)
 
     def bt_add_user(self):
+        """
+        Функция выполняется при нажатии кнопки "Добавить строку" на форме "Сотрудники"
+        :return: Открывает окно для ввода данных
+        """
         dialog_user_new = User_new_win(self)
         with sqlite3.connect('ProblemDB.db') as con:
             data = con.execute('SELECT name FROM unit').fetchall()
@@ -123,7 +128,52 @@ class User_win(QDialog, Ui_Dialog_user):
             QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
 
     def bt_upd_user(self):
-        pass
+        """
+        Функция выполняется при нажатии кнопки "Обновить строку" на форме "Сотрудники"
+        :return: Открывает окно для обновления  данных
+        :return:
+        """
+        dialog_user_update = User_update_win(self)
+        # QMessageBox.information(self, 'Отладка', 'Нажата кнопка')
+        a = []
+
+        table = self.tableUser
+        # Получаем строку с текущими данными
+
+        if table.selectedItems():
+            for currentQTableWidgetItem in table.selectedItems():
+                a.append(currentQTableWidgetItem.text())
+            print(a)
+            # ФИО
+            dialog_user_update.Edit_Fio_up.setText(str(a[1]))
+
+            dt=QDate.fromString(str(a[2]),'YYYY-MM-DD')
+            print(a[2])
+            print(dt)
+
+            dialog_user_update.Edit_date_up.setDate(dt)
+
+            if a[3]=='М':
+                dialog_user_update.chB_male_up.setCheckState(2)
+            else:
+                dialog_user_update.chB_female_up.setCheckState(2)
+
+            # Заполняем список Подразделений
+            with sqlite3.connect('ProblemDB.db') as con:
+                data = con.execute('SELECT name FROM unit').fetchall()
+            dialog_user_update.CB_unit_up.clear()
+            for row in data:
+                dialog_user_update.CB_unit_up.addItem(*row)
+                # Устанвливаем текущее значение
+                dialog_user_update.CB_unit_up.setEditText(str(a[4]))
+
+            dialog_user_update.show()
+
+        else:
+            QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
+
+
+        # pass
 
     def closeEvent(self, event):
         """
@@ -137,7 +187,6 @@ class User_new_win(QDialog, Ui_Dialog_user_new):
     Окно "Добавление данных по Сотрудникас" .
     Вызывается из формы "Сотрудники" по нажатию на кнопку "Добавить строку"
     """
-
     def __init__(self, *args):
         super().__init__(*args)
         self.setupUi(self)
@@ -151,6 +200,10 @@ class User_new_win(QDialog, Ui_Dialog_user_new):
         self.btnUser_Cancel.clicked.connect(self.bt_cancel_user_new)
 
     def bt_ok_user_new(self):
+        """
+        Функция вызывается по нажатию кнопки "Записать" на форме
+        :return:
+        """
         er1 = False
         er2 = False
         if self.Edit_Fio.text() == '' or self.CB_unit.currentText() == '' or (
@@ -194,8 +247,11 @@ class User_new_win(QDialog, Ui_Dialog_user_new):
             self.accept()
 
     def bt_cancel_user_new(self):
+        """
+        Функция вызывается по нажатию кнопки "Отмена"
+        :return:
+        """
         self.close()
-        # pass
 
     def findText(self, s):
         """
@@ -206,6 +262,16 @@ class User_new_win(QDialog, Ui_Dialog_user_new):
         index = self.CB_unit.findText(s)
         if index > -1:
             self.CB_unit.setCurrentIndex(index)
+
+class User_update_win(QDialog,Ui_Dialog_user_update):
+    """
+       Окно "Добавление данных по Сотрудникас" .
+       Вызывается из формы "Сотрудники" по нажатию на кнопку "Добавить строку"
+       """
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setupUi(self)
+
 
 
 class Services_win(QDialog, Ui_Dialog_services):
@@ -322,7 +388,6 @@ class Services_up_win(QDialog, Ui_Dialog):
     Окно "Обновление данных по Сервисным службам" .
     Вызывается из формы "Сервисные службы" по нажатию на кнопку "Обновить строку"
     """
-
     def __init__(self, *args):
         super().__init__(*args)
         self.setupUi(self)
