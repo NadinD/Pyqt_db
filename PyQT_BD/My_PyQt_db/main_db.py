@@ -80,14 +80,27 @@ class User_win(QDialog, Ui_Dialog_user):
             data = con.execute('SELECT name FROM unit').fetchall()
 
             dialog_user_new.CB_unit.clear()
-            # dialog_user_new.CB_unit.addItem('')
             for row in data:
                 dialog_user_new.CB_unit.addItem(*row)
             # Устанвливаем "ПУСТУЮ" строку -ничего не выбрано из списка
             dialog_user_new.CB_unit.setCurrentIndex(-1)
         dialog_user_new.show()
 
+        if dialog_user_new.exec() == QDialog.Accepted:
+            self.tableUser.setRowCount(0)
+            for row_number, row in enumerate(con.execute("""select u.id,u.FIO, u.birthday, u.gender, un.name
+                        from User as u
+                        LEFT JOIN  unit as un
+                        on  un.id= u.unitId""").fetchall()):
+                self.tableUser.insertRow(row_number)
+                for col_number, col in enumerate(row):
+                    self.tableUser.setItem(row_number, col_number, QTableWidgetItem(str(col)))
+
     def bt_del_user(self):
+        """
+        Функция выполняется при нажатии кнопки "Удалить строку" на форме "Сотрудники"
+        :return:
+        """
         a = []
         if self.tableUser.selectedItems():
             for currentQTableWidgetItem in self.tableUser.selectedItems():
@@ -138,43 +151,47 @@ class User_new_win(QDialog, Ui_Dialog_user_new):
         self.btnUser_Cancel.clicked.connect(self.bt_cancel_user_new)
 
     def bt_ok_user_new(self):
-        # пол
-        if self.chB_female.isChecked():
-            p = 'Ж'
-        elif self.chB_male.isChecked():
-            p = 'М'
+        er1 = False
+        er2 = False
+        if self.Edit_Fio.text() == '' or self.CB_unit.currentText() == '' or (
+                not self.chB_female.isChecked() and not self.chB_male.isChecked()):
+            QMessageBox.information(self, 'Ошибка', 'Не все поля заполнены')
+            er1 = True
         else:
-            QMessageBox.information(self, 'Ошибка', 'Не выбран пол')
-        # дата рождения
-        d = self.Edit_date.date()
-        td = d.toPyDate()
-        # QMessageBox.information(self, 'Ошибка',str(td) )
+            # пол
+            if self.chB_female.isChecked():
+                er1 = False
+                p = 'Ж'
+            elif self.chB_male.isChecked():
+                er1 = False
+                p = 'М'
 
-        # подразделение
-        if self.CB_unit.currentText()!='':
+            # дата рождения
+            d = self.Edit_date.date()
+            td = d.toPyDate()
+
+            # подразделение
             with sqlite3.connect('ProblemDB.db') as con:
-                sql = """SELECT id FROM unit where name ='""" + self.CB_unit.currentText() +"""'"""
-                QMessageBox.information(self, 'Ошибка', str(sql))
+                sql = """SELECT id FROM unit where name ='""" + self.CB_unit.currentText() + """'"""
+                QMessageBox.information(self, 'Отладка', str(sql))
+                cur = con.cursor()
+                cur.execute(sql)
+                id_un = cur.fetchone()
+                if id_un == None:
+                    er2 = True
+                    QMessageBox.information(self, 'Отладка', 'Введено не верное название поразделения')
+                else:
+                    print(id_un)
+                    er2 = False
+                    # print(id_un[0])
+                    QMessageBox.information(self, 'Отладка', str(id_un))
+                    with sqlite3.connect('ProblemDB.db') as con:
+                        con.execute('INSERT into user(FIO,birthday,gender,unitId) VALUES (?,?,?,?)',
+                                    (self.Edit_Fio.text(), str(td), p, str(id_un[0])))
+                        con.commit()
 
-                id_un = con.execute(sql).fetchone()
-                print(id_un[0])
-                # if len(id_un) ==1:
-                #     print(id_un)
-                QMessageBox.information(self, 'Ошибка', str(id_un[0]))
-
-        with sqlite3.connect('ProblemDB.db') as con:
-            con.execute('INSERT into user(FIO,birthday,gender,unitId) VALUES (?,?,?,?)', (self.Edit_Fio.text(),str(td),p,str(id_un[0])))
-            con.commit()
-
-            # dialog_user.tableUser.Clear()
-
-            for row_number, row in enumerate(con.execute("""select u.id,u.FIO, u.birthday, u.gender, un.name
-            from User as u
-            LEFT JOIN  unit as un
-            on  un.id= u.unitId""").fetchall()):
-                self.tableUser.insertRow(row_number)
-                for col_number, col in enumerate(row):
-                    self.tableUser.setItem(row_number, col_number, QTableWidgetItem(str(col)))
+        if (not er1 and not er2):
+            self.accept()
 
     def bt_cancel_user_new(self):
         self.close()
