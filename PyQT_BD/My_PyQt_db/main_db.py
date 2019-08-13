@@ -6,6 +6,8 @@ from PyQT_BD.My_PyQt_db.ui_main import Ui_MainWindow
 
 from PyQT_BD.My_PyQt_db.ui_services import Ui_Dialog_services
 from PyQT_BD.My_PyQt_db.ui_services_update import Ui_Dialog
+from PyQT_BD.My_PyQt_db.ui_user import Ui_Dialog_user
+from PyQT_BD.My_PyQt_db.ui_user_new import Ui_Dialog_user_new
 
 
 class Window(QMainWindow, Ui_MainWindow):
@@ -17,8 +19,21 @@ class Window(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
 
+        # нажата кнопка меню "Справочники -> Сотрудники"
+        self.user_action.triggered.connect(self.user_dialg)
+
         # нажата кнопка меню "Справочники -> Сервисные службы"
         self.services_action.triggered.connect(self.services_dialg)
+
+    def user_dialg(self):
+        """
+        Функция выполняется при нажатии кнопки меню "Справочники -> Сотрудники"
+        :return: Открывает окно с таблицей информации по отрудникам (User_win)
+        """
+        dialog_user = User_win(self)
+        dialog_user.show()
+        # Скрываем основное окно программы
+        wnd.hide()
 
     def services_dialg(self):
         """
@@ -29,6 +44,151 @@ class Window(QMainWindow, Ui_MainWindow):
         dialog.show()
         # Скрываем основное окно программы
         wnd.hide()
+
+
+class User_win(QDialog, Ui_Dialog_user):
+    """
+    Окно программы "Сотрудники"
+    """
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setupUi(self)
+
+        # Соединение с базой
+        con = sqlite3.connect('ProblemDB.db')
+        # Заполнение таблицы
+        for row_number, row in enumerate(con.execute("""select u.id,u.FIO, u.birthday, u.gender, un.name
+        from User as u
+        LEFT JOIN  unit as un
+        on  un.id= u.unitId""").fetchall()):
+            self.tableUser.insertRow(row_number)
+            for col_number, col in enumerate(row):
+                self.tableUser.setItem(row_number, col_number, QTableWidgetItem(str(col)))
+        self.tableUser.setSortingEnabled(True)
+
+        # Нажата кнопка "Добавить строку" на форме "Сотрудники"
+        self.btUserAdd.clicked.connect(self.bt_add_user)
+        # Нажата кнопка "Удалить строку" на форме "Сотрудники"
+        self.btUserDel.clicked.connect(self.bt_del_user)
+        # # Нажата кнопка "Обновить строку" на форме "Сотрудники"
+        # self.btUserUpdate.clicked.connect(self.bt_upd_user)
+
+    def bt_add_user(self):
+        dialog_user_new = User_new_win(self)
+        with sqlite3.connect('ProblemDB.db') as con:
+            data = con.execute('SELECT name FROM unit').fetchall()
+
+            dialog_user_new.CB_unit.clear()
+            # dialog_user_new.CB_unit.addItem('')
+            for row in data:
+                dialog_user_new.CB_unit.addItem(*row)
+            # Устанвливаем "ПУСТУЮ" строку -ничего не выбрано из списка
+            dialog_user_new.CB_unit.setCurrentIndex(-1)
+        dialog_user_new.show()
+
+    def bt_del_user(self):
+        a = []
+        if self.tableUser.selectedItems():
+            for currentQTableWidgetItem in self.tableUser.selectedItems():
+                a.append(currentQTableWidgetItem.text())
+            #     print(currentQTableWidgetItem.row(), currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
+            print(a)
+            # Удаление строки
+            sql = 'DELETE FROM  user WHERE id  =' + str(a[0])
+            # QMessageBox.information(self, 'Remove item', sql)
+            # with sqlite3.connect('ProblemDB.db') as con:
+            self.con = sqlite3.connect('ProblemDB.db')
+            # QMessageBox.information(self, 'соединение с базой', 'соединение с базой')
+
+            self.con.execute(sql)
+            # QMessageBox.information(self, 'соединение с базой', '2')
+            self.con.commit()
+            # QMessageBox.information(self, 'соединение с базой', '3')
+            self.tableUser.removeRow(currentQTableWidgetItem.row())
+        else:
+            QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
+
+    def bt_upd_user(self):
+        pass
+
+    def closeEvent(self, event):
+        """
+        при закрытии окна показать главное окно . Событие формируется при закрытии окна.
+        """
+        wnd.show()
+
+
+class User_new_win(QDialog, Ui_Dialog_user_new):
+    """
+    Окно "Добавление данных по Сотрудникас" .
+    Вызывается из формы "Сотрудники" по нажатию на кнопку "Добавить строку"
+    """
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setupUi(self)
+
+        self.CB_unit.setEditable(True)
+        self.CB_unit.editTextChanged.connect(self.findText)
+
+        # нажата кнопка "Записать"
+        self.btnUser_Ok.clicked.connect(self.bt_ok_user_new)
+        # нажата кнопка "Отмена"
+        self.btnUser_Cancel.clicked.connect(self.bt_cancel_user_new)
+
+    def bt_ok_user_new(self):
+        # пол
+        if self.chB_female.isChecked():
+            p = 'Ж'
+        elif self.chB_male.isChecked():
+            p = 'М'
+        else:
+            QMessageBox.information(self, 'Ошибка', 'Не выбран пол')
+        # дата рождения
+        d = self.Edit_date.date()
+        td = d.toPyDate()
+        # QMessageBox.information(self, 'Ошибка',str(td) )
+
+        # подразделение
+        if self.CB_unit.currentText()!='':
+            with sqlite3.connect('ProblemDB.db') as con:
+                sql = """SELECT id FROM unit where name ='""" + self.CB_unit.currentText() +"""'"""
+                QMessageBox.information(self, 'Ошибка', str(sql))
+
+                id_un = con.execute(sql).fetchone()
+                print(id_un[0])
+                # if len(id_un) ==1:
+                #     print(id_un)
+                QMessageBox.information(self, 'Ошибка', str(id_un[0]))
+
+        with sqlite3.connect('ProblemDB.db') as con:
+            con.execute('INSERT into user(FIO,birthday,gender,unitId) VALUES (?,?,?,?)', (self.Edit_Fio.text(),str(td),p,str(id_un[0])))
+            con.commit()
+
+            # dialog_user.tableUser.Clear()
+
+            for row_number, row in enumerate(con.execute("""select u.id,u.FIO, u.birthday, u.gender, un.name
+            from User as u
+            LEFT JOIN  unit as un
+            on  un.id= u.unitId""").fetchall()):
+                self.tableUser.insertRow(row_number)
+                for col_number, col in enumerate(row):
+                    self.tableUser.setItem(row_number, col_number, QTableWidgetItem(str(col)))
+
+    def bt_cancel_user_new(self):
+        self.close()
+        # pass
+
+    def findText(self, s):
+        """
+        функция поиска введенного текста в поле Подразделение
+        :param s: строка текста для поиска соответствия
+        :return:
+        """
+        index = self.CB_unit.findText(s)
+        if index > -1:
+            self.CB_unit.setCurrentIndex(index)
 
 
 class Services_win(QDialog, Ui_Dialog_services):

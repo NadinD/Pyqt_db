@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
+ <class>Dialog_user</class>
+ <widget class="QDialog" name="Dialog_user">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -43,6 +43,9 @@
        </attribute>
        <attribute name="horizontalHeaderStretchLastSection">
         <bool>true</bool>
+       </attribute>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
        </attribute>
        <column>
         <property name="text">
@@ -98,7 +101,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="btUsersDel">
+        <widget class="QPushButton" name="btUserDel">
          <property name="font">
           <font>
            <pointsize>12</pointsize>
