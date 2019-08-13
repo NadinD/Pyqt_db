@@ -148,6 +148,7 @@ class User_win(QDialog, Ui_Dialog_user):
             dialog_user_update.Edit_Fio_up.setText(str(a[1]))
 
             dt=QDate.fromString(str(a[2]),'YYYY-MM-DD')
+
             print(a[2])
             print(dt)
 
