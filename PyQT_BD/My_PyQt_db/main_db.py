@@ -9,6 +9,7 @@ from PyQT_BD.My_PyQt_db.ui_services import Ui_Dialog_services
 from PyQT_BD.My_PyQt_db.ui_services_update import Ui_Dialog
 from PyQT_BD.My_PyQt_db.ui_unit import Ui_Dialog_unit
 from PyQT_BD.My_PyQt_db.ui_unit_new import Ui_Dialog_unit_new
+from PyQT_BD.My_PyQt_db.ui_unit_update import Ui_Dialog_unit_update
 from PyQT_BD.My_PyQt_db.ui_user import Ui_Dialog_user
 from PyQT_BD.My_PyQt_db.ui_user_new import Ui_Dialog_user_new
 from PyQT_BD.My_PyQt_db.ui_user_update import Ui_Dialog_user_update
@@ -91,8 +92,8 @@ class Unit_win(QDialog, Ui_Dialog_unit):
         self.btUnitAdd.clicked.connect(self.bt_add_unit)
         # Нажата кнопка "Удалить строку" на форме "Подразделения"
         self.btUnitDel.clicked.connect(self.bt_del_unit)
-        # # Нажата кнопка "Обновить строку" на форме "Подразделения"
-        # self.btUserUpdate.clicked.connect(self.bt_upd_user)
+        # Нажата кнопка "Обновить строку" на форме "Подразделения"
+        self.btUnitUpdate.clicked.connect(self.bt_upd_unit)
 
     def bt_add_unit(self):
         """
@@ -150,6 +151,49 @@ class Unit_win(QDialog, Ui_Dialog_unit):
             self.con.commit()
             # QMessageBox.information(self, 'соединение с базой', '3')
             self.tableUnit.removeRow(currentQTableWidgetItem.row())
+        else:
+            QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
+
+    def bt_upd_unit(self):
+        """
+        Функция выполняется при нажатии кнопки "Обновить строку" на форме "Сотрудники"
+        :return: Открывает окно для обновления  данных
+        """
+        dialog_unit_update = Unit_update_win(self)
+        # QMessageBox.information(self, 'Отладка', 'Нажата кнопка')
+        a = []
+
+        table = self.tableUnit
+        # Получаем строку с текущими данными
+        if table.selectedItems():
+            for currentQTableWidgetItem in table.selectedItems():
+                a.append(currentQTableWidgetItem.text())
+            print(a)
+            # заполняем  текущее значение Подразделение
+            dialog_unit_update.Edit_Unit_up.setText(str(a[1]))
+            # заполняем  текущее значение ФИО
+            dialog_unit_update.Edit_Short_Unit_up.setText(str(a[2]))
+            # Заполняем список Подразделений
+            with sqlite3.connect('ProblemDB.db') as con:
+                data = con.execute('SELECT name FROM unit').fetchall()
+            dialog_unit_update.CB_unit_up.clear()
+            for row in data:
+                dialog_unit_update.CB_unit_up.addItem(*row)
+                # Устанавливаем текущее значение
+                dialog_unit_update.CB_unit_up.setCurrentText(str(a[3]))
+            # Показываем форму для изменения занчений
+            dialog_unit_update.show()
+            if dialog_unit_update.exec() == QDialog.Accepted:
+                self.tableUnit.setRowCount(0)
+                for row_number, row in enumerate(con.execute("""select u.id,u.name,u.shortName,u1.name
+                from unit as  u
+                LEFT JOIN unit as u1
+                on u.unitId= u1.id""").fetchall()):
+                    self.tableUnit.insertRow(row_number)
+                    for col_number, col in enumerate(row):
+                        if col == None:
+                            col = ''
+                        self.tableUnit.setItem(row_number, col_number, QTableWidgetItem(str(col)))
         else:
             QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
 
@@ -214,8 +258,6 @@ class Unit_new_win(QDialog, Ui_Dialog_unit_new):
                                     (self.Edit_Unit.text(), self.Edit_Short_Unit.text(), str(id_un[0])))
                         con.commit()
 
-
-
         if (not er1 and not er2):
             self.accept()
 
@@ -235,6 +277,69 @@ class Unit_new_win(QDialog, Ui_Dialog_unit_new):
         index = self.CB_unit.findText(s)
         if index > -1:
             self.CB_unit.setCurrentIndex(index)
+
+
+class Unit_update_win(QDialog, Ui_Dialog_unit_update):
+    """
+       Окно "Обновление данных по Подразделениям" .
+       Вызывается из формы "Подразделения" по нажатию на кнопку "Обновить строку"
+       """
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setupUi(self)
+        # нажата кнопка "Записать"
+        self.btnUnit_up_Ok.clicked.connect(self.bt_ok_unit_up)
+        # нажата кнопка "Отмена"
+        self.btnUnit_up_Cancel.clicked.connect(self.bt_cancel_unit_up)
+
+    def bt_ok_unit_up(self):
+        """
+        Функция вызывается по нажатию кнопки "Записать" на форме
+        :return:
+        """
+        er1 = False
+        er2 = False
+        QMessageBox.information(self, 'Отладка','1')
+        if self.Edit_Unit_up.text() == '':
+            QMessageBox.information(self, 'Ошибка', 'Поле подразделение должно быть обязательно заполнено')
+            er1 = True
+        elif self.CB_unit_up.currentText() == '':
+            with sqlite3.connect('ProblemDB.db') as con:
+                con.execute('UPDATE unit set name=?,shortname=? where id=?',
+                            (self.Edit_Unit_up.text(), self.Edit_Short_Unit_up.text()),'5')
+                con.commit()
+        else:
+            # подразделение вышестоящее
+            with sqlite3.connect('ProblemDB.db') as con:
+                sql = """SELECT id FROM unit where name ='""" + self.CB_unit_up.currentText() + """'"""
+                QMessageBox.information(self, 'Отладка', str(sql))
+                cur = con.cursor()
+                cur.execute(sql)
+                id_un = cur.fetchone()
+                QMessageBox.information(self, 'Отладка', '2')
+                if id_un == None:
+                    er2 = True
+                    QMessageBox.information(self, 'Отладка', 'Введено не верное название поразделения')
+                else:
+                    print(id_un)
+                    er2 = False
+                    # print(id_un[0])
+                    QMessageBox.information(self, 'Отладка', str(id_un))
+                    with sqlite3.connect('ProblemDB.db') as con:
+                        con.execute('UPDATE unit set name= ?,shortname=?,unitId=? where id=?',
+                                    (self.Edit_Unit_up.text(), self.Edit_Short_Unit_up.text(), str(id_un[0]),'5'))
+                        con.commit()
+
+        if (not er1 and not er2):
+            self.accept()
+
+    def bt_cancel_unit_up(self):
+        """
+        Функция вызывается по нажатию кнопки "Отмена"
+        :return:
+        """
+        self.close()
 
 
 class User_win(QDialog, Ui_Dialog_user):
@@ -467,8 +572,8 @@ class User_new_win(QDialog, Ui_Dialog_user_new):
 
 class User_update_win(QDialog, Ui_Dialog_user_update):
     """
-       Окно "Добавление данных по Сотрудникас" .
-       Вызывается из формы "Сотрудники" по нажатию на кнопку "Добавить строку"
+       Окно "Обновление данных по Сотрудникам" .
+       Вызывается из формы "Сотрудники" по нажатию на кнопку "Обновить строку"
        """
 
     def __init__(self, *args):
