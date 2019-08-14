@@ -8,11 +8,11 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-class Ui_Dialog(object):
-    def setupUi(self, Dialog):
-        Dialog.setObjectName("Dialog")
-        Dialog.resize(483, 361)
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog)
+class Ui_Dialog_unit_new(object):
+    def setupUi(self, Dialog_unit_new):
+        Dialog_unit_new.setObjectName("Dialog_unit_new")
+        Dialog_unit_new.resize(483, 361)
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog_unit_new)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
@@ -21,7 +21,7 @@ class Ui_Dialog(object):
         self.formLayout.setContentsMargins(5, 10, 5, 2)
         self.formLayout.setSpacing(10)
         self.formLayout.setObjectName("formLayout")
-        self.label = QtWidgets.QLabel(Dialog)
+        self.label = QtWidgets.QLabel(Dialog_unit_new)
         font = QtGui.QFont()
         font.setFamily("Arial")
         font.setPointSize(12)
@@ -30,10 +30,10 @@ class Ui_Dialog(object):
         self.label.setFont(font)
         self.label.setObjectName("label")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.Edit_Unit = QtWidgets.QLineEdit(Dialog)
+        self.Edit_Unit = QtWidgets.QLineEdit(Dialog_unit_new)
         self.Edit_Unit.setObjectName("Edit_Unit")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.Edit_Unit)
-        self.label_2 = QtWidgets.QLabel(Dialog)
+        self.label_2 = QtWidgets.QLabel(Dialog_unit_new)
         font = QtGui.QFont()
         font.setFamily("Arial")
         font.setPointSize(12)
@@ -42,10 +42,10 @@ class Ui_Dialog(object):
         self.label_2.setFont(font)
         self.label_2.setObjectName("label_2")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label_2)
-        self.Edit_Short_Unit = QtWidgets.QLineEdit(Dialog)
+        self.Edit_Short_Unit = QtWidgets.QLineEdit(Dialog_unit_new)
         self.Edit_Short_Unit.setObjectName("Edit_Short_Unit")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.Edit_Short_Unit)
-        self.label_3 = QtWidgets.QLabel(Dialog)
+        self.label_3 = QtWidgets.QLabel(Dialog_unit_new)
         font = QtGui.QFont()
         font.setFamily("Arial")
         font.setPointSize(12)
@@ -54,22 +54,22 @@ class Ui_Dialog(object):
         self.label_3.setFont(font)
         self.label_3.setObjectName("label_3")
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.label_3)
-        self.CB_Unit = QtWidgets.QComboBox(Dialog)
-        self.CB_Unit.setObjectName("CB_Unit")
-        self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.CB_Unit)
+        self.CB_unit = QtWidgets.QComboBox(Dialog_unit_new)
+        self.CB_unit.setObjectName("CB_unit")
+        self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.CB_unit)
         self.verticalLayout.addLayout(self.formLayout)
         self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_6.setSpacing(10)
         self.horizontalLayout_6.setObjectName("horizontalLayout_6")
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_6.addItem(spacerItem)
-        self.btnUnit_Ok = QtWidgets.QPushButton(Dialog)
+        self.btnUnit_Ok = QtWidgets.QPushButton(Dialog_unit_new)
         font = QtGui.QFont()
         font.setPointSize(12)
         self.btnUnit_Ok.setFont(font)
         self.btnUnit_Ok.setObjectName("btnUnit_Ok")
         self.horizontalLayout_6.addWidget(self.btnUnit_Ok)
-        self.btnUnit_Cancel = QtWidgets.QPushButton(Dialog)
+        self.btnUnit_Cancel = QtWidgets.QPushButton(Dialog_unit_new)
         font = QtGui.QFont()
         font.setPointSize(12)
         self.btnUnit_Cancel.setFont(font)
@@ -80,17 +80,17 @@ class Ui_Dialog(object):
         spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_2.addItem(spacerItem1)
 
-        self.retranslateUi(Dialog)
-        QtCore.QMetaObject.connectSlotsByName(Dialog)
+        self.retranslateUi(Dialog_unit_new)
+        QtCore.QMetaObject.connectSlotsByName(Dialog_unit_new)
 
-    def retranslateUi(self, Dialog):
+    def retranslateUi(self, Dialog_unit_new):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
-        self.label.setText(_translate("Dialog", "Подразделение"))
-        self.label_2.setText(_translate("Dialog", "Сокращенное \n"
+        Dialog_unit_new.setWindowTitle(_translate("Dialog_unit_new", "Dialog"))
+        self.label.setText(_translate("Dialog_unit_new", "Подразделение"))
+        self.label_2.setText(_translate("Dialog_unit_new", "Сокращенное \n"
 "название"))
-        self.label_3.setText(_translate("Dialog", "Вышестоящие \n"
+        self.label_3.setText(_translate("Dialog_unit_new", "Вышестоящие \n"
 "подразделение"))
-        self.btnUnit_Ok.setText(_translate("Dialog", "Записать"))
-        self.btnUnit_Cancel.setText(_translate("Dialog", "Отмена"))
+        self.btnUnit_Ok.setText(_translate("Dialog_unit_new", "Записать"))
+        self.btnUnit_Cancel.setText(_translate("Dialog_unit_new", "Отмена"))
 
