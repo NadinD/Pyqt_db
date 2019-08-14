@@ -2,11 +2,13 @@
 
 # Form implementation generated from reading ui file 'unit_update.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.3
+# Created by: PyQt5 UI code generator 5.13.0
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_Dialog_unit_update(object):
     def setupUi(self, Dialog_unit_update):
@@ -78,6 +80,10 @@ class Ui_Dialog_unit_update(object):
         self.horizontalLayout_6.addWidget(self.btnUnit_up_Cancel)
         self.verticalLayout.addLayout(self.horizontalLayout_6)
         self.verticalLayout_2.addLayout(self.verticalLayout)
+        self.Edit_Id = QtWidgets.QLineEdit(Dialog_unit_update)
+        self.Edit_Id.setEnabled(False)
+        self.Edit_Id.setObjectName("Edit_Id")
+        self.verticalLayout_2.addWidget(self.Edit_Id)
         spacerItem1 = QtWidgets.QSpacerItem(20, 173, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_2.addItem(spacerItem1)
 
@@ -94,4 +100,3 @@ class Ui_Dialog_unit_update(object):
 "подразделение"))
         self.btnUnit_up_Ok.setText(_translate("Dialog_unit_update", "Записать"))
         self.btnUnit_up_Cancel.setText(_translate("Dialog_unit_update", "Отмена"))
-

@@ -161,6 +161,7 @@ class Unit_win(QDialog, Ui_Dialog_unit):
         """
         dialog_unit_update = Unit_update_win(self)
         # QMessageBox.information(self, 'Отладка', 'Нажата кнопка')
+        dialog_unit_update.Edit_Id.hide()
         a = []
 
         table = self.tableUnit
@@ -169,6 +170,8 @@ class Unit_win(QDialog, Ui_Dialog_unit):
             for currentQTableWidgetItem in table.selectedItems():
                 a.append(currentQTableWidgetItem.text())
             print(a)
+            # id
+            dialog_unit_update.Edit_Id.setText(str(a[0]))
             # заполняем  текущее значение Подразделение
             dialog_unit_update.Edit_Unit_up.setText(str(a[1]))
             # заполняем  текущее значение ФИО
@@ -307,7 +310,7 @@ class Unit_update_win(QDialog, Ui_Dialog_unit_update):
         elif self.CB_unit_up.currentText() == '':
             with sqlite3.connect('ProblemDB.db') as con:
                 con.execute('UPDATE unit set name=?,shortname=? where id=?',
-                            (self.Edit_Unit_up.text(), self.Edit_Short_Unit_up.text()),'5')
+                            (self.Edit_Unit_up.text(), self.Edit_Short_Unit_up.text()),self.Edit_Id.text())
                 con.commit()
         else:
             # подразделение вышестоящее
@@ -328,7 +331,7 @@ class Unit_update_win(QDialog, Ui_Dialog_unit_update):
                     QMessageBox.information(self, 'Отладка', str(id_un))
                     with sqlite3.connect('ProblemDB.db') as con:
                         con.execute('UPDATE unit set name= ?,shortname=?,unitId=? where id=?',
-                                    (self.Edit_Unit_up.text(), self.Edit_Short_Unit_up.text(), str(id_un[0]),'5'))
+                                    (self.Edit_Unit_up.text(), self.Edit_Short_Unit_up.text(), str(id_un[0]),self.Edit_Id.text()))
                         con.commit()
 
         if (not er1 and not er2):
@@ -435,6 +438,7 @@ class User_win(QDialog, Ui_Dialog_user):
         """
         dialog_user_update = User_update_win(self)
         # QMessageBox.information(self, 'Отладка', 'Нажата кнопка')
+        dialog_user_update.Edit_Id.hide()
         a = []
 
         table = self.tableUser
@@ -443,6 +447,8 @@ class User_win(QDialog, Ui_Dialog_user):
             for currentQTableWidgetItem in table.selectedItems():
                 a.append(currentQTableWidgetItem.text())
             print(a)
+            # id
+            dialog_user_update.Edit_Id.setText(str(a[0]))
             # заполняем  текущее значение ФИО
             dialog_user_update.Edit_Fio_up.setText(str(a[1]))
             # Дата рождения
@@ -632,7 +638,7 @@ class User_update_win(QDialog, Ui_Dialog_user_update):
                     QMessageBox.information(self, 'Отладка', str(id_un))
                     with sqlite3.connect('ProblemDB.db') as con:
                         con.execute('Update user set FIO= ? , birthday= ?, gender =? ,unitId=? where id =?',
-                                    (self.Edit_Fio_up.text(), str(td), p, str(id_un[0]), '12'))
+                                    (self.Edit_Fio_up.text(), str(td), p, str(id_un[0]), self.Edit_Id.text()))
                         con.commit()
 
         if (not er1 and not er2):

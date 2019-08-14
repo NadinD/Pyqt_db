@@ -147,6 +147,13 @@
     </layout>
    </item>
    <item>
+    <widget class="QLineEdit" name="Edit_Id">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
