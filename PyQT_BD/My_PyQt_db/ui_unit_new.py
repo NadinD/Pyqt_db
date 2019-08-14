@@ -85,7 +85,7 @@ class Ui_Dialog_unit_new(object):
 
     def retranslateUi(self, Dialog_unit_new):
         _translate = QtCore.QCoreApplication.translate
-        Dialog_unit_new.setWindowTitle(_translate("Dialog_unit_new", "Dialog"))
+        Dialog_unit_new.setWindowTitle(_translate("Dialog_unit_new", "Новое подразделение"))
         self.label.setText(_translate("Dialog_unit_new", "Подразделение"))
         self.label_2.setText(_translate("Dialog_unit_new", "Сокращенное \n"
 "название"))
