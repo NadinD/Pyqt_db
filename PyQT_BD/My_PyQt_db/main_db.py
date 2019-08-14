@@ -7,6 +7,7 @@ from PyQT_BD.My_PyQt_db.ui_main import Ui_MainWindow
 
 from PyQT_BD.My_PyQt_db.ui_services import Ui_Dialog_services
 from PyQT_BD.My_PyQt_db.ui_services_update import Ui_Dialog
+from PyQT_BD.My_PyQt_db.ui_unit import Ui_Dialog_unit
 from PyQT_BD.My_PyQt_db.ui_user import Ui_Dialog_user
 from PyQT_BD.My_PyQt_db.ui_user_new import Ui_Dialog_user_new
 from PyQT_BD.My_PyQt_db.ui_user_update import Ui_Dialog_user_update
@@ -16,18 +17,30 @@ class Window(QMainWindow, Ui_MainWindow):
     """
     Основное окно программы
     """
-
     def __init__(self):
         super().__init__()
         self.setupUi(self)
 
+        # нажата кнопка меню "Справочники -> Подразделения"
+        self.unit_action.triggered.connect(self.unit_dialog)
+
         # нажата кнопка меню "Справочники -> Сотрудники"
-        self.user_action.triggered.connect(self.user_dialg)
+        self.user_action.triggered.connect(self.user_dialog)
 
         # нажата кнопка меню "Справочники -> Сервисные службы"
-        self.services_action.triggered.connect(self.services_dialg)
+        self.services_action.triggered.connect(self.services_dialog)
 
-    def user_dialg(self):
+    def unit_dialog(self):
+         """
+        Функция выполняется при нажатии кнопки меню "Справочники -> Подразделения"
+        :return: Открывает окно с таблицей информации по подразделениям (Unit_win)
+        """
+         dialog_unit = Unit_win(self)
+         dialog_unit.show()
+         # Скрываем основное окно программы
+         wnd.hide()
+
+    def user_dialog(self):
         """
         Функция выполняется при нажатии кнопки меню "Справочники -> Сотрудники"
         :return: Открывает окно с таблицей информации по отрудникам (User_win)
@@ -37,7 +50,7 @@ class Window(QMainWindow, Ui_MainWindow):
         # Скрываем основное окно программы
         wnd.hide()
 
-    def services_dialg(self):
+    def services_dialog(self):
         """
          Функция выполняется при нажатии кнопки меню "Справочники -> Сервисные службы"
         :return: Открывает окно с таблицей информации по сервисным службам (Services_win)
@@ -47,10 +60,39 @@ class Window(QMainWindow, Ui_MainWindow):
         # Скрываем основное окно программы
         wnd.hide()
 
+class Unit_win(QDialog,Ui_Dialog_unit):
+    """
+    Окно  "Подразделения"
+    """
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setupUi(self)
+
+        # Соединение с базой
+        con = sqlite3.connect('ProblemDB.db')
+        # Заполнение таблицы
+        for row_number, row in enumerate(con.execute("""select u.id,u.name,u.shortName,u1.name
+        from unit as  u
+        LEFT JOIN unit as u1
+        on u.unitId= u1.id""").fetchall()):
+            self.tableUnit.insertRow(row_number)
+            for col_number, col in enumerate(row):
+                if col ==None:
+                    col=''
+                self.tableUnit.setItem(row_number, col_number, QTableWidgetItem(str(col)))
+        self.tableUnit.setSortingEnabled(True)
+        self.tableUnit.resizeColumnsToContents()
+
+    def closeEvent(self, event):
+        """
+        при закрытии окна показать главное окно . Событие формируется при закрытии окна.
+        """
+        wnd.show()
+
 
 class User_win(QDialog, Ui_Dialog_user):
     """
-    Окно программы "Сотрудники"
+    Окно "Сотрудники"
     """
     def __init__(self, *args):
         super().__init__(*args)

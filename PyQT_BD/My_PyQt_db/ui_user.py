@@ -78,7 +78,7 @@ class Ui_Dialog_user(object):
 
     def retranslateUi(self, Dialog_user):
         _translate = QtCore.QCoreApplication.translate
-        Dialog_user.setWindowTitle(_translate("Dialog_user", "Dialog"))
+        Dialog_user.setWindowTitle(_translate("Dialog_user", "Справочник сотрудников"))
         item = self.tableUser.horizontalHeaderItem(0)
         item.setText(_translate("Dialog_user", "Таб. №"))
         item = self.tableUser.horizontalHeaderItem(1)
