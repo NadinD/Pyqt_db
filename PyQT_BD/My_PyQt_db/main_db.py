@@ -75,8 +75,9 @@ class Unit_win(QDialog, Ui_Dialog_unit):
 
         # Соединение с базой
         con = sqlite3.connect('ProblemDB.db')
+        cur = con.cursor()
         # Заполнение таблицы
-        for row_number, row in enumerate(con.execute("""select u.id,u.name,u.shortName,u1.name
+        for row_number, row in enumerate(cur.execute("""select u.id,u.name,u.shortName,u1.name
         from unit as  u
         LEFT JOIN unit as u1
         on u.unitId= u1.id""").fetchall()):
@@ -86,6 +87,7 @@ class Unit_win(QDialog, Ui_Dialog_unit):
                     col = ''
                 self.tableUnit.setItem(row_number, col_number, QTableWidgetItem(str(col)))
         self.tableUnit.setSortingEnabled(True)
+        # Подгоняем ширину столбцов таблицы под данные
         self.tableUnit.resizeColumnsToContents()
 
         # Нажата кнопка "Добавить строку" на форме "Подразделения"
@@ -97,28 +99,27 @@ class Unit_win(QDialog, Ui_Dialog_unit):
 
     def bt_add_unit(self):
         """
-        Функция выполняется при нажатии кнопки "Добавить строку" на форме "Сотрудники"
+        Функция выполняется при нажатии кнопки "Добавить строку" на форме "Подразделения"
         :return: Открывает окно для ввода данных
         """
         dialog_unit_new = Unit_new_win(self)
-        # QMessageBox.information(self, 'Отладка', '1')
         with sqlite3.connect('ProblemDB.db') as con:
-            # QMessageBox.information(self, 'Отладка', '2')
-            data = con.execute('SELECT name FROM unit').fetchall()
-
-            # QMessageBox.information(self, 'Отладка', '3')
-
+            cur = con.cursor()
+            data = cur.execute('SELECT name FROM unit').fetchall()
+            # заполняем выпадающий список данными
             dialog_unit_new.CB_unit.clear()
-            # QMessageBox.information(self, 'Отладка', '4')
             for row in data:
                 dialog_unit_new.CB_unit.addItem(*row)
             # Устанвливаем "ПУСТУЮ" строку -ничего не выбрано из списка
             dialog_unit_new.CB_unit.setCurrentIndex(-1)
+        # открываем окно
         dialog_unit_new.show()
 
+        # Если в окне была нажата кнопка "Записать"
         if dialog_unit_new.exec() == QDialog.Accepted:
+            # удаляем все строки из таблицы и заполняем заново
             self.tableUnit.setRowCount(0)
-            for row_number, row in enumerate(con.execute("""select u.id,u.name,u.shortName,u1.name
+            for row_number, row in enumerate(cur.execute("""select u.id,u.name,u.shortName,u1.name
             from unit as  u
             LEFT JOIN unit as u1
             on u.unitId= u1.id""").fetchall()):
@@ -137,19 +138,12 @@ class Unit_win(QDialog, Ui_Dialog_unit):
         if self.tableUnit.selectedItems():
             for currentQTableWidgetItem in self.tableUnit.selectedItems():
                 a.append(currentQTableWidgetItem.text())
-            #     print(currentQTableWidgetItem.row(), currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
-            print(a)
             # Удаление строки
             sql = 'DELETE FROM  unit WHERE id  =' + str(a[0])
-            # QMessageBox.information(self, 'Remove item', sql)
-            # with sqlite3.connect('ProblemDB.db') as con:
             self.con = sqlite3.connect('ProblemDB.db')
-            # QMessageBox.information(self, 'соединение с базой', 'соединение с базой')
-
-            self.con.execute(sql)
-            # QMessageBox.information(self, 'соединение с базой', '2')
-            self.con.commit()
-            # QMessageBox.information(self, 'соединение с базой', '3')
+            cur=self.con.cursor()
+            self.cur.execute(sql)
+            self.cur.commit()
             self.tableUnit.removeRow(currentQTableWidgetItem.row())
         else:
             QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
@@ -160,7 +154,6 @@ class Unit_win(QDialog, Ui_Dialog_unit):
         :return: Открывает окно для обновления  данных
         """
         dialog_unit_update = Unit_update_win(self)
-        # QMessageBox.information(self, 'Отладка', 'Нажата кнопка')
         dialog_unit_update.Edit_Id.hide()
         a = []
 
@@ -169,26 +162,28 @@ class Unit_win(QDialog, Ui_Dialog_unit):
         if table.selectedItems():
             for currentQTableWidgetItem in table.selectedItems():
                 a.append(currentQTableWidgetItem.text())
-            print(a)
             # id
             dialog_unit_update.Edit_Id.setText(str(a[0]))
-            # заполняем  текущее значение Подразделение
+            # заполняем  текущее значение Подразделения
             dialog_unit_update.Edit_Unit_up.setText(str(a[1]))
-            # заполняем  текущее значение ФИО
+            # заполняем  текущее значение сокращенного наименования
             dialog_unit_update.Edit_Short_Unit_up.setText(str(a[2]))
             # Заполняем список Подразделений
             with sqlite3.connect('ProblemDB.db') as con:
-                data = con.execute('SELECT name FROM unit').fetchall()
+                cur=con.cursor()
+                data = cur.execute('SELECT name FROM unit').fetchall()
             dialog_unit_update.CB_unit_up.clear()
             for row in data:
                 dialog_unit_update.CB_unit_up.addItem(*row)
                 # Устанавливаем текущее значение
                 dialog_unit_update.CB_unit_up.setCurrentText(str(a[3]))
-            # Показываем форму для изменения занчений
+            # Показываем форму для изменения значений
             dialog_unit_update.show()
+
+            # Если в окне была нажата кнопка "Записать"
             if dialog_unit_update.exec() == QDialog.Accepted:
                 self.tableUnit.setRowCount(0)
-                for row_number, row in enumerate(con.execute("""select u.id,u.name,u.shortName,u1.name
+                for row_number, row in enumerate(cur.execute("""select u.id,u.name,u.shortName,u1.name
                 from unit as  u
                 LEFT JOIN unit as u1
                 on u.unitId= u1.id""").fetchall()):
@@ -237,29 +232,31 @@ class Unit_new_win(QDialog, Ui_Dialog_unit_new):
             er1 = True
         elif self.CB_unit.currentText() == '':
             with sqlite3.connect('ProblemDB.db') as con:
-                con.execute('INSERT into unit(name,shortname) VALUES (?,?)',
+                cur=con.cursor()
+                cur.execute('INSERT into unit(name,shortname) VALUES (?,?)',
                             (self.Edit_Unit.text(), self.Edit_Short_Unit.text()))
-                con.commit()
+                cur.commit()
         else:
             # подразделение вышестоящее
             with sqlite3.connect('ProblemDB.db') as con:
                 sql = """SELECT id FROM unit where name ='""" + self.CB_unit.currentText() + """'"""
-                QMessageBox.information(self, 'Отладка', str(sql))
+                # QMessageBox.information(self, 'Отладка', str(sql))
                 cur = con.cursor()
                 cur.execute(sql)
                 id_un = cur.fetchone()
                 if id_un == None:
                     er2 = True
-                    QMessageBox.information(self, 'Отладка', 'Введено не верное название поразделения')
+                    QMessageBox.information(self, 'Ошибка', 'Введено не верное название поразделения')
                 else:
-                    print(id_un)
+                    # print(id_un)
                     er2 = False
                     # print(id_un[0])
-                    QMessageBox.information(self, 'Отладка', str(id_un))
+                    # QMessageBox.information(self, 'Отладка', str(id_un))
                     with sqlite3.connect('ProblemDB.db') as con:
-                        con.execute('INSERT into unit(name,shortname,unitId) VALUES (?,?,?)',
+                        cur=con.cursor()
+                        cur.execute('INSERT into unit(name,shortname,unitId) VALUES (?,?,?)',
                                     (self.Edit_Unit.text(), self.Edit_Short_Unit.text(), str(id_un[0])))
-                        con.commit()
+                        cur.commit()
 
         if (not er1 and not er2):
             self.accept()
@@ -303,36 +300,32 @@ class Unit_update_win(QDialog, Ui_Dialog_unit_update):
         """
         er1 = False
         er2 = False
-        QMessageBox.information(self, 'Отладка','1')
         if self.Edit_Unit_up.text() == '':
             QMessageBox.information(self, 'Ошибка', 'Поле подразделение должно быть обязательно заполнено')
             er1 = True
         elif self.CB_unit_up.currentText() == '':
             with sqlite3.connect('ProblemDB.db') as con:
-                con.execute('UPDATE unit set name=?,shortname=? where id=?',
+                cur =con.cursor()
+                cur.execute('UPDATE unit set name=?,shortname=? where id=?',
                             (self.Edit_Unit_up.text(), self.Edit_Short_Unit_up.text()),self.Edit_Id.text())
-                con.commit()
+                cur.commit()
         else:
             # подразделение вышестоящее
             with sqlite3.connect('ProblemDB.db') as con:
                 sql = """SELECT id FROM unit where name ='""" + self.CB_unit_up.currentText() + """'"""
-                QMessageBox.information(self, 'Отладка', str(sql))
                 cur = con.cursor()
                 cur.execute(sql)
                 id_un = cur.fetchone()
-                QMessageBox.information(self, 'Отладка', '2')
                 if id_un == None:
                     er2 = True
-                    QMessageBox.information(self, 'Отладка', 'Введено не верное название поразделения')
+                    QMessageBox.information(self, 'Ошибка', 'Введено не верное название поразделения')
                 else:
-                    print(id_un)
                     er2 = False
-                    # print(id_un[0])
-                    QMessageBox.information(self, 'Отладка', str(id_un))
                     with sqlite3.connect('ProblemDB.db') as con:
-                        con.execute('UPDATE unit set name= ?,shortname=?,unitId=? where id=?',
+                        cur = con.cursor()
+                        cur.execute('UPDATE unit set name= ?,shortname=?,unitId=? where id=?',
                                     (self.Edit_Unit_up.text(), self.Edit_Short_Unit_up.text(), str(id_un[0]),self.Edit_Id.text()))
-                        con.commit()
+                        cur.commit()
 
         if (not er1 and not er2):
             self.accept()
@@ -356,8 +349,9 @@ class User_win(QDialog, Ui_Dialog_user):
 
         # Соединение с базой
         con = sqlite3.connect('ProblemDB.db')
+        cur =con.cursor()
         # Заполнение таблицы
-        for row_number, row in enumerate(con.execute("""select u.id,u.FIO, u.birthday, u.gender, un.name
+        for row_number, row in enumerate(cur.execute("""select u.id,u.FIO, u.birthday, u.gender, un.name
         from User as u
         LEFT JOIN  unit as un
         on  un.id= u.unitId""").fetchall()):
@@ -383,7 +377,8 @@ class User_win(QDialog, Ui_Dialog_user):
         """
         dialog_user_new = User_new_win(self)
         with sqlite3.connect('ProblemDB.db') as con:
-            data = con.execute('SELECT name FROM unit').fetchall()
+            cur =con.cursor()
+            data = cur.execute('SELECT name FROM unit').fetchall()
 
             dialog_user_new.CB_unit.clear()
             for row in data:
@@ -394,7 +389,7 @@ class User_win(QDialog, Ui_Dialog_user):
 
         if dialog_user_new.exec() == QDialog.Accepted:
             self.tableUser.setRowCount(0)
-            for row_number, row in enumerate(con.execute("""select u.id,u.FIO, u.birthday, u.gender, un.name
+            for row_number, row in enumerate(cur.execute("""select u.id,u.FIO, u.birthday, u.gender, un.name
                         from User as u
                         LEFT JOIN  unit as un
                         on  un.id= u.unitId""").fetchall()):
@@ -413,20 +408,13 @@ class User_win(QDialog, Ui_Dialog_user):
         if self.tableUser.selectedItems():
             for currentQTableWidgetItem in self.tableUser.selectedItems():
                 a.append(currentQTableWidgetItem.text())
-            #     print(currentQTableWidgetItem.row(), currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
-            print(a)
             # Удаление строки
             sql = 'DELETE FROM  user WHERE id  =' + str(a[0])
-            # QMessageBox.information(self, 'Remove item', sql)
-            # with sqlite3.connect('ProblemDB.db') as con:
-            self.con = sqlite3.connect('ProblemDB.db')
-            # QMessageBox.information(self, 'соединение с базой', 'соединение с базой')
-
-            self.con.execute(sql)
-            # QMessageBox.information(self, 'соединение с базой', '2')
-            self.con.commit()
-            # QMessageBox.information(self, 'соединение с базой', '3')
-            self.tableUser.removeRow(currentQTableWidgetItem.row())
+            with sqlite3.connect('ProblemDB.db') as con:
+                cur=con.cursor()
+                self.cur.execute(sql)
+                self.cur.commit()
+                self.tableUser.removeRow(currentQTableWidgetItem.row())
         else:
             QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
 
@@ -437,7 +425,6 @@ class User_win(QDialog, Ui_Dialog_user):
         :return:
         """
         dialog_user_update = User_update_win(self)
-        # QMessageBox.information(self, 'Отладка', 'Нажата кнопка')
         dialog_user_update.Edit_Id.hide()
         a = []
 
@@ -446,15 +433,12 @@ class User_win(QDialog, Ui_Dialog_user):
         if table.selectedItems():
             for currentQTableWidgetItem in table.selectedItems():
                 a.append(currentQTableWidgetItem.text())
-            print(a)
             # id
             dialog_user_update.Edit_Id.setText(str(a[0]))
             # заполняем  текущее значение ФИО
             dialog_user_update.Edit_Fio_up.setText(str(a[1]))
             # Дата рождения
             dt = QDate.fromString(str(a[2]), 'yyyy-MM-dd')
-            # print(a[2])
-            # print(dt)
             # заполняем  текущее значение ФИО
             dialog_user_update.Edit_date_up.setDate(dt)
             # заполняем значение текущее Пол
@@ -464,7 +448,8 @@ class User_win(QDialog, Ui_Dialog_user):
                 dialog_user_update.chB_female_up.setCheckState(2)
             # Заполняем список Подразделений
             with sqlite3.connect('ProblemDB.db') as con:
-                data = con.execute('SELECT name FROM unit').fetchall()
+                cur=con.cursor()
+                data = cur.execute('SELECT name FROM unit').fetchall()
             dialog_user_update.CB_unit_up.clear()
             for row in data:
                 dialog_user_update.CB_unit_up.addItem(*row)
@@ -474,7 +459,7 @@ class User_win(QDialog, Ui_Dialog_user):
             dialog_user_update.show()
             if dialog_user_update.exec() == QDialog.Accepted:
                 self.tableUser.setRowCount(0)
-                for row_number, row in enumerate(con.execute("""select u.id,u.FIO, u.birthday, u.gender, un.name
+                for row_number, row in enumerate(cur.execute("""select u.id,u.FIO, u.birthday, u.gender, un.name
                             from User as u
                             LEFT JOIN  unit as un
                             on  un.id= u.unitId""").fetchall()):
@@ -538,22 +523,19 @@ class User_new_win(QDialog, Ui_Dialog_user_new):
             # подразделение
             with sqlite3.connect('ProblemDB.db') as con:
                 sql = """SELECT id FROM unit where name ='""" + self.CB_unit.currentText() + """'"""
-                QMessageBox.information(self, 'Отладка', str(sql))
                 cur = con.cursor()
                 cur.execute(sql)
                 id_un = cur.fetchone()
                 if id_un == None:
                     er2 = True
-                    QMessageBox.information(self, 'Отладка', 'Введено не верное название поразделения')
+                    QMessageBox.information(self, 'Ошибка', 'Введено не верное название поразделения')
                 else:
-                    print(id_un)
                     er2 = False
-                    # print(id_un[0])
-                    QMessageBox.information(self, 'Отладка', str(id_un))
                     with sqlite3.connect('ProblemDB.db') as con:
-                        con.execute('INSERT into user(FIO,birthday,gender,unitId) VALUES (?,?,?,?)',
+                        cur =con.cursor()
+                        cur.execute('INSERT into user(FIO,birthday,gender,unitId) VALUES (?,?,?,?)',
                                     (self.Edit_Fio.text(), str(td), p, str(id_un[0])))
-                        con.commit()
+                        cur.commit()
 
         if (not er1 and not er2):
             self.accept()
@@ -597,13 +579,11 @@ class User_update_win(QDialog, Ui_Dialog_user_update):
         """
         er1 = False
         er2 = False
-        QMessageBox.information(self, 'Отладка', '0')
         if self.Edit_Fio_up.text() == '' or self.CB_unit_up.currentText() == '' or (
                 not self.chB_female_up.isChecked() and not self.chB_male_up.isChecked()):
             QMessageBox.information(self, 'Ошибка', 'Не все поля заполнены')
             er1 = True
         else:
-            QMessageBox.information(self, 'Отладка', '11')
             # пол
             if self.chB_female_up.isChecked():
                 er1 = False
@@ -612,34 +592,26 @@ class User_update_win(QDialog, Ui_Dialog_user_update):
                 er1 = False
                 p = 'М'
 
-            QMessageBox.information(self, 'Отладка', '1')
-
             # дата рождения
             d = self.Edit_date_up.date()
             td = d.toPyDate()
 
             # подразделение
-            QMessageBox.information(self, 'Отладка', '2')
             with sqlite3.connect('ProblemDB.db') as con:
                 sql = """SELECT id FROM unit where name ='""" + self.CB_unit_up.currentText() + """'"""
-                QMessageBox.information(self, 'Отладка', str(sql))
                 cur = con.cursor()
                 cur.execute(sql)
-                QMessageBox.information(self, 'Отладка', '3')
                 id_un = cur.fetchone()
                 if id_un == None:
                     er2 = True
-                    QMessageBox.information(self, 'Отладка', 'Введено не верное название поразделения')
+                    QMessageBox.information(self, 'Ошибка', 'Введено не верное название поразделения')
                 else:
-                    print(id_un)
                     er2 = False
-                    # print(id_un[0])
-                    QMessageBox.information(self, 'Отладка', '5')
-                    QMessageBox.information(self, 'Отладка', str(id_un))
                     with sqlite3.connect('ProblemDB.db') as con:
-                        con.execute('Update user set FIO= ? , birthday= ?, gender =? ,unitId=? where id =?',
+                        cur= con.cursor()
+                        cur.execute('Update user set FIO= ? , birthday= ?, gender =? ,unitId=? where id =?',
                                     (self.Edit_Fio_up.text(), str(td), p, str(id_un[0]), self.Edit_Id.text()))
-                        con.commit()
+                        cur.commit()
 
         if (not er1 and not er2):
             self.accept()
@@ -663,8 +635,9 @@ class Services_win(QDialog, Ui_Dialog_services):
 
         # Соединение с базой
         con = sqlite3.connect('ProblemDB.db')
+        cur=con.cursor()
         # Заполнение таблицы
-        for row_number, row in enumerate(con.execute("""select id,name from services""").fetchall()):
+        for row_number, row in enumerate(cur.execute("""select id,name from services""").fetchall()):
             self.tableSevices.insertRow(row_number)
             for col_number, col in enumerate(row):
                 self.tableSevices.setItem(row_number, col_number, QTableWidgetItem(str(col)))
@@ -688,10 +661,11 @@ class Services_win(QDialog, Ui_Dialog_services):
 
         if ok:
             with sqlite3.connect('ProblemDB.db') as con:
-                con.execute('INSERT into services(name) VALUES (?)', (serv,))
-                con.commit()
+                cur = con.cursor()
+                cur.execute('INSERT into services(name) VALUES (?)', (serv,))
+                cur.commit()
                 table.setRowCount(0)
-                for row_number, row in enumerate(con.execute("""select id,name from services""").fetchall()):
+                for row_number, row in enumerate(cur.execute("""select id,name from services""").fetchall()):
                     table.insertRow(row_number)
                     for col_number, col in enumerate(row):
                         table.setItem(row_number, col_number, QTableWidgetItem(str(col)))
@@ -708,14 +682,10 @@ class Services_win(QDialog, Ui_Dialog_services):
 
             # Удаление строки
             sql = 'DELETE FROM  services WHERE id  =' + str(a[0])
-            # QMessageBox.information(self, 'Remove item', sql)
-            # with sqlite3.connect('ProblemDB.db') as con:
-            self.con = sqlite3.connect('ProblemDB.db')
-            # QMessageBox.information(self, 'соединение с базой', 'соединение с базой')
-            self.con.execute(sql)
-            # QMessageBox.information(self, 'соединение с базой', '2')
-            self.con.commit()
-            # QMessageBox.information(self, 'соединение с базой', '3')
+            with sqlite3.connect('ProblemDB.db') as con:
+                cur=con.cursor()
+                self.cur.execute(sql)
+                self.cur.commit()
             self.tableSevices.removeRow(currentQTableWidgetItem.row())
         else:
             QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
@@ -725,7 +695,6 @@ class Services_win(QDialog, Ui_Dialog_services):
         Функция выполняется при нажатии кнопки "Обновить строку" на форме "Сервисные службы"
         :return: Открывает окно для обновления данных (Services_up_win)
         """
-        # self.tableSevices.setItem(0, 0, QTableWidgetItem('5'))
         dial_upd = Services_up_win(self)
         a = []
         table = self.tableSevices
@@ -735,22 +704,12 @@ class Services_win(QDialog, Ui_Dialog_services):
                 a.append(currentQTableWidgetItem.text())
             dial_upd.lineEdit.setText(str(a[1]))
             if dial_upd.exec():
-                sql = """UPDATE  services SET name ='""" + str(dial_upd.lineEdit.text()) + """' WHERE id  =""" + str(
-                    a[0])
-                QMessageBox.information(self, 'update item', sql)
-                # with sqlite3.connect('ProblemDB.db') as con:
-                self.con = sqlite3.connect('ProblemDB.db')
-                # QMessageBox.information(self, 'соединение с базой', 'соединение с базой')
-
-                self.con.execute(sql)
-                # QMessageBox.information(self, 'соединение с базой', '2')
-                self.con.commit()
-                self.tableSevices.setItem(currentQTableWidgetItem.row(), 1,
-                                          QTableWidgetItem(dial_upd.lineEdit.text()))
-                # QMessageBox.information(self, 'проверка', dial_upd.lineEdit.text())
-                # QMessageBox.information(self, 'проверка', str(currentQTableWidgetItem.row()))
-            # dial_upd.show()
-            # self.dialog.hide()
+                sql = """UPDATE  services SET name ='""" + str(dial_upd.lineEdit.text()) + """' WHERE id  =""" + str(a[0])
+                with sqlite3.connect('ProblemDB.db') as con:
+                    con.execute(sql)
+                    con.commit()
+                    self.tableSevices.setItem(currentQTableWidgetItem.row(), 1,
+                                              QTableWidgetItem(dial_upd.lineEdit.text()))
         else:
             QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
 

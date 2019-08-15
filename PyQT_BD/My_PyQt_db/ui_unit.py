@@ -12,6 +12,7 @@ class Ui_Dialog_unit(object):
     def setupUi(self, Dialog_unit):
         Dialog_unit.setObjectName("Dialog_unit")
         Dialog_unit.resize(1084, 654)
+        Dialog_unit.setModal(False)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog_unit)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -38,6 +39,7 @@ class Ui_Dialog_unit(object):
         self.tableUnit.setHorizontalHeaderItem(3, item)
         self.tableUnit.horizontalHeader().setSortIndicatorShown(True)
         self.tableUnit.horizontalHeader().setStretchLastSection(True)
+        self.tableUnit.verticalHeader().setVisible(False)
         self.horizontalLayout.addWidget(self.tableUnit)
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
