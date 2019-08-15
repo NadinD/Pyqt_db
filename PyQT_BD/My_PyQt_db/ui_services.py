@@ -2,16 +2,18 @@
 
 # Form implementation generated from reading ui file 'services.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.3
+# Created by: PyQt5 UI code generator 5.13.0
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_Dialog_services(object):
     def setupUi(self, Dialog_services):
         Dialog_services.setObjectName("Dialog_services")
-        Dialog_services.resize(747, 340)
+        Dialog_services.resize(633, 524)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog_services)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -34,6 +36,7 @@ class Ui_Dialog_services(object):
         self.tableSevices.setHorizontalHeaderItem(1, item)
         self.tableSevices.horizontalHeader().setSortIndicatorShown(True)
         self.tableSevices.horizontalHeader().setStretchLastSection(True)
+        self.tableSevices.verticalHeader().setVisible(False)
         self.horizontalLayout.addWidget(self.tableSevices)
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
@@ -55,6 +58,9 @@ class Ui_Dialog_services(object):
         self.btServicesDel.setFont(font)
         self.btServicesDel.setObjectName("btServicesDel")
         self.verticalLayout.addWidget(self.btServicesDel)
+        self.lineEdit = QtWidgets.QLineEdit(Dialog_services)
+        self.lineEdit.setObjectName("lineEdit")
+        self.verticalLayout.addWidget(self.lineEdit)
         self.btServicesFind = QtWidgets.QPushButton(Dialog_services)
         font = QtGui.QFont()
         font.setPointSize(12)
@@ -64,6 +70,8 @@ class Ui_Dialog_services(object):
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.horizontalLayout.addLayout(self.verticalLayout)
+        self.horizontalLayout.setStretch(0, 2)
+        self.horizontalLayout.setStretch(1, 1)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
 
         self.retranslateUi(Dialog_services)
@@ -71,7 +79,7 @@ class Ui_Dialog_services(object):
 
     def retranslateUi(self, Dialog_services):
         _translate = QtCore.QCoreApplication.translate
-        Dialog_services.setWindowTitle(_translate("Dialog_services", "Сервисные службы"))
+        Dialog_services.setWindowTitle(_translate("Dialog_services", "Справочник сервисных служб"))
         item = self.tableSevices.horizontalHeaderItem(0)
         item.setText(_translate("Dialog_services", "№"))
         item = self.tableSevices.horizontalHeaderItem(1)
@@ -80,4 +88,3 @@ class Ui_Dialog_services(object):
         self.btServicesUpdate.setText(_translate("Dialog_services", "Обновить строку ..."))
         self.btServicesDel.setText(_translate("Dialog_services", "Удалить строку ..."))
         self.btServicesFind.setText(_translate("Dialog_services", "Поиск ..."))
-

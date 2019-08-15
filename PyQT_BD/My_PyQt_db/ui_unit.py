@@ -2,11 +2,13 @@
 
 # Form implementation generated from reading ui file 'unit.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.3
+# Created by: PyQt5 UI code generator 5.13.0
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_Dialog_unit(object):
     def setupUi(self, Dialog_unit):
@@ -90,4 +92,3 @@ class Ui_Dialog_unit(object):
         self.btUnitUpdate.setText(_translate("Dialog_unit", "Обновить строку ..."))
         self.btUnitDel.setText(_translate("Dialog_unit", "Удалить строку ..."))
         self.btUnitFind.setText(_translate("Dialog_unit", "Поиск ..."))
-
