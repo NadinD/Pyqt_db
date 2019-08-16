@@ -2,13 +2,11 @@
 
 # Form implementation generated from reading ui file 'unit.ui'
 #
-# Created by: PyQt5 UI code generator 5.13.0
+# Created by: PyQt5 UI code generator 5.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
-
 from PyQt5 import QtCore, QtGui, QtWidgets
-
 
 class Ui_Dialog_unit(object):
     def setupUi(self, Dialog_unit):
@@ -63,15 +61,20 @@ class Ui_Dialog_unit(object):
         self.btUnitDel.setFont(font)
         self.btUnitDel.setObjectName("btUnitDel")
         self.verticalLayout.addWidget(self.btUnitDel)
-        self.btUnitFind = QtWidgets.QPushButton(Dialog_unit)
+        self.label = QtWidgets.QLabel(Dialog_unit)
         font = QtGui.QFont()
-        font.setPointSize(12)
-        self.btUnitFind.setFont(font)
-        self.btUnitFind.setObjectName("btUnitFind")
-        self.verticalLayout.addWidget(self.btUnitFind)
+        font.setBold(True)
+        font.setWeight(75)
+        self.label.setFont(font)
+        self.label.setObjectName("label")
+        self.verticalLayout.addWidget(self.label)
+        self.lineEdit = QtWidgets.QLineEdit(Dialog_unit)
+        self.lineEdit.setObjectName("lineEdit")
+        self.verticalLayout.addWidget(self.lineEdit)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.horizontalLayout.addLayout(self.verticalLayout)
+        self.horizontalLayout.setStretch(0, 2)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
 
         self.retranslateUi(Dialog_unit)
@@ -91,4 +94,5 @@ class Ui_Dialog_unit(object):
         self.btUnitAdd.setText(_translate("Dialog_unit", "Добавить строку ..."))
         self.btUnitUpdate.setText(_translate("Dialog_unit", "Обновить строку ..."))
         self.btUnitDel.setText(_translate("Dialog_unit", "Удалить строку ..."))
-        self.btUnitFind.setText(_translate("Dialog_unit", "Поиск ..."))
+        self.label.setText(_translate("Dialog_unit", "Поиск:"))
+

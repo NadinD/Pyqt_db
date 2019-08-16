@@ -2,18 +2,16 @@
 
 # Form implementation generated from reading ui file 'services.ui'
 #
-# Created by: PyQt5 UI code generator 5.13.0
+# Created by: PyQt5 UI code generator 5.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
-
 from PyQt5 import QtCore, QtGui, QtWidgets
-
 
 class Ui_Dialog_services(object):
     def setupUi(self, Dialog_services):
         Dialog_services.setObjectName("Dialog_services")
-        Dialog_services.resize(633, 524)
+        Dialog_services.resize(715, 558)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog_services)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -58,20 +56,20 @@ class Ui_Dialog_services(object):
         self.btServicesDel.setFont(font)
         self.btServicesDel.setObjectName("btServicesDel")
         self.verticalLayout.addWidget(self.btServicesDel)
+        self.label = QtWidgets.QLabel(Dialog_services)
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.label.setFont(font)
+        self.label.setObjectName("label")
+        self.verticalLayout.addWidget(self.label)
         self.lineEdit = QtWidgets.QLineEdit(Dialog_services)
         self.lineEdit.setObjectName("lineEdit")
         self.verticalLayout.addWidget(self.lineEdit)
-        self.btServicesFind = QtWidgets.QPushButton(Dialog_services)
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        self.btServicesFind.setFont(font)
-        self.btServicesFind.setObjectName("btServicesFind")
-        self.verticalLayout.addWidget(self.btServicesFind)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.horizontalLayout.addLayout(self.verticalLayout)
         self.horizontalLayout.setStretch(0, 2)
-        self.horizontalLayout.setStretch(1, 1)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
 
         self.retranslateUi(Dialog_services)
@@ -87,4 +85,5 @@ class Ui_Dialog_services(object):
         self.btServicesAdd.setText(_translate("Dialog_services", "Добавить строку ..."))
         self.btServicesUpdate.setText(_translate("Dialog_services", "Обновить строку ..."))
         self.btServicesDel.setText(_translate("Dialog_services", "Удалить строку ..."))
-        self.btServicesFind.setText(_translate("Dialog_services", "Поиск ..."))
+        self.label.setText(_translate("Dialog_services", "Поиск:"))
+

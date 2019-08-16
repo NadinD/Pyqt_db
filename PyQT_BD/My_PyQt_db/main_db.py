@@ -97,6 +97,14 @@ class Unit_win(QDialog, Ui_Dialog_unit):
         # Нажата кнопка "Обновить строку" на форме "Подразделения"
         self.btUnitUpdate.clicked.connect(self.bt_upd_unit)
 
+        self.lineEdit.textChanged.connect(self.text_changed_find)
+
+    def text_changed_find(self):
+        items = self.tableUnit.findItems(self.lineEdit.text(), QtCore.Qt.MatchContains)
+        if items:  # если список не пустой
+            # установить текущей первую из найденых ячеек
+            self.tableUnit.selectRow(items[0].row())
+
     def bt_add_unit(self):
         """
         Функция выполняется при нажатии кнопки "Добавить строку" на форме "Подразделения"
@@ -370,6 +378,14 @@ class User_win(QDialog, Ui_Dialog_user):
         self.btUserDel.clicked.connect(self.bt_del_user)
         # Нажата кнопка "Обновить строку" на форме "Сотрудники"
         self.btUserUpdate.clicked.connect(self.bt_upd_user)
+
+        self.lineEdit.textChanged.connect(self.text_changed_find)
+
+    def text_changed_find(self):
+        items = self.tableUser.findItems(self.lineEdit.text(), QtCore.Qt.MatchContains)
+        if items:  # если список не пустой
+            # установить текущей первую из найденых ячеек
+            self.tableUser.selectRow(items[0].row())
 
     def bt_add_user(self):
         """
@@ -654,26 +670,24 @@ class Services_win(QDialog, Ui_Dialog_services):
         # Нажата кнопка "Обновить строку" на форме "Сервисные службы"
         self.btServicesUpdate.clicked.connect(self.bt_upd_services)
 
-        self.btServicesFind.clicked.connect(self.bt_find_services)
+        self.lineEdit.textChanged.connect(self.text_changed_find)
 
-        # self.lineEdit.textChanged.connect(self.text_changed_find)
-
-    def bt_find_services(self):
-        txt=self.lineEdit.text()
-        print(txt)
-
-        items = self.tableSevices.findItems(str(txt),QtCore.Qt.MatchContains)
-
-        print(items)
-
+    def text_changed_find(self):
+        items = self.tableSevices.findItems(self.lineEdit.text(), QtCore.Qt.MatchContains)
         if items:  # если список не пустой
-            # self.tableSevices.selectRow(result[0])
             # установить текущей первую из найденых ячеек
             self.tableSevices.selectRow(items[0].row())
-            # for item in items:
-            #     self.tableSevices.selectRow(item.row())
-        else:
-            QMessageBox.information(self, 'Информация', 'Поиск не дал результатов')
+
+    # def bt_find_services(self):
+    #     txt=self.lineEdit.text()
+    #     items = self.tableSevices.findItems(str(txt),QtCore.Qt.MatchContains)
+    #     if items:  # если список не пустой
+    #         # установить текущей первую из найденых ячеек
+    #         self.tableSevices.selectRow(items[0].row())
+    #     else:
+    #         QMessageBox.information(self, 'Информация', 'Поиск не дал результатов')
+
+
 
 
     def bt_add_services(self):

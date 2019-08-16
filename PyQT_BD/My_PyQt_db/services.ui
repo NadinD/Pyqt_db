@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>633</width>
-    <height>524</height>
+    <width>715</width>
+    <height>558</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="2,1">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="2,0">
      <item>
       <widget class="QTableWidget" name="tableSevices">
        <property name="font">
@@ -98,19 +98,20 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="lineEdit"/>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btServicesFind">
+        <widget class="QLabel" name="label">
          <property name="font">
           <font>
-           <pointsize>12</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
           </font>
          </property>
          <property name="text">
-          <string>Поиск ...</string>
+          <string>Поиск:</string>
          </property>
         </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lineEdit"/>
        </item>
        <item>
         <spacer name="verticalSpacer">
