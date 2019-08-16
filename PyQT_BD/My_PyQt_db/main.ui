@@ -63,41 +63,7 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
-       <widget class="QTableWidget" name="tableWidget">
-        <attribute name="verticalHeaderVisible">
-         <bool>false</bool>
-        </attribute>
-        <column>
-         <property name="text">
-          <string>№ заявки</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Дата</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Сервисная служба</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Текст заявки</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>ФИО заявителя</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Подразделение заявителя</string>
-         </property>
-        </column>
-       </widget>
+       <widget class="QTableView" name="tableView"/>
       </item>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout">

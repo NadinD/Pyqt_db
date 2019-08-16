@@ -1,7 +1,8 @@
 import sqlite3
 import sys
-from PyQt5 import QtCore
-from PyQt5.QtCore import QDate,Qt
+from PyQt5 import QtCore, QtSql
+from PyQt5.QtCore import QDate, Qt
+from PyQt5.QtSql import QSqlQueryModel, QSqlRelation, QSqlRelationalDelegate
 from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QInputDialog, QTableWidgetItem, QMessageBox
 from PyQT_BD.My_PyQt_db.ui_main import Ui_MainWindow
 
@@ -24,6 +25,8 @@ class Window(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
 
+        # Обработка действий по меню
+
         # нажата кнопка меню "Справочники -> Подразделения"
         self.unit_action.triggered.connect(self.unit_dialog)
 
@@ -32,6 +35,65 @@ class Window(QMainWindow, Ui_MainWindow):
 
         # нажата кнопка меню "Справочники -> Сервисные службы"
         self.services_action.triggered.connect(self.services_dialog)
+
+        # Работа с самой формой
+        # Соединение с базой
+        # con = sqlite3.connect('ProblemDB.db')
+        myconnection = QtSql.QSqlDatabase.addDatabase("QSQLITE")  # создаём подключение
+        myconnection.setDatabaseName("ProblemDB.db")
+        myconnection.open()
+        # if not myconnection.open():
+        #     QMessageBox.critical(None, qApp.tr("Cannot open database"),
+        #                          qApp.tr("Unable to establish a database connection.\n"
+        #                                  "This example needs SQLite support. Please read "
+        #                                  "the Qt SQL driver documentation for information "
+        #                                  "how to build it.\n\n" "Click Cancel to exit."),
+        #                          QMessageBox.Cancel)
+        # создаём для неё модель данных
+        # self.sqlModel = QtSql.QSqlTableModel(self)
+        self.sqlModel = QtSql.QSqlRelationalTableModel(self)
+        # указываем таблицу из БД для модели
+        self.sqlModel.setTable('def_message')
+        # Выбираем стратегию редактирвоания
+        self.sqlModel.setEditStrategy(QtSql.QSqlTableModel.OnFieldChange)
+        # связь
+        self.sqlModel.setRelation(4, QSqlRelation("user", "id", "FIO"));
+        self.sqlModel.setRelation(2, QSqlRelation("services", "id", "name"));
+
+        # загружаем данные из таблицы в модель
+        self.sqlModel.select()
+        # указываем заголовки столбцов
+        self.sqlModel.setHeaderData(0, QtCore.Qt.Horizontal, 'Номер заявки')
+        self.sqlModel.setHeaderData(1, QtCore.Qt.Horizontal, 'Дата')
+        self.sqlModel.setHeaderData(2, QtCore.Qt.Horizontal, 'Служба')
+        self.sqlModel.setHeaderData(3, QtCore.Qt.Horizontal, 'Текст неисправности')
+        self.sqlModel.setHeaderData(4, QtCore.Qt.Horizontal, 'Пользователь')
+        # назначаем сетке-гриду-таблице-представлению модель данных
+        self.tableView.setModel(self.sqlModel)
+
+        self.tableView.setItemDelegate(QSqlRelationalDelegate(self.tableView))
+
+        # self.tableView.setColumnHidden(0, True)
+        # self.tableView.setColumnHidden(1, True)
+
+        self.btProblemAdd.clicked.connect(self.addrow)
+        self.btProblemDel.clicked.connect(self.delrow)
+        self.btProblemFind.clicked.connect(self.findText)
+
+        #
+        # # создаём ссылку на модель-выбора (именно из неё можно получить текущий индекс ячейки) в сетке-гриде-таблице
+        # selModel = self.tableView.selectionModel()
+
+    def addrow(self):
+        #  добавить строку
+        ret = self.sqlModel.insertRows(self.sqlModel.rowCount(), 1)
+
+    def delrow(self):
+        self.sqlModel.removeRow(self.tableView.currentIndex().row())
+
+    def findText(self):
+
+        self.sqlModel.setFilter("Name='Anderson'")
 
     def unit_dialog(self):
         """
@@ -661,8 +723,6 @@ class Services_win(QDialog, Ui_Dialog_services):
         self.tableSevices.setSortingEnabled(True)
         self.tableSevices.resizeColumnsToContents()
 
-
-
         # Нажата кнопка "Добавить строку" на форме "Сервисные службы"
         self.btServicesAdd.clicked.connect(self.bt_add_services)
         # Нажата кнопка "Удалить строку" на форме "Сервисные службы"
@@ -686,9 +746,6 @@ class Services_win(QDialog, Ui_Dialog_services):
     #         self.tableSevices.selectRow(items[0].row())
     #     else:
     #         QMessageBox.information(self, 'Информация', 'Поиск не дал результатов')
-
-
-
 
     def bt_add_services(self):
         """
