@@ -3,7 +3,8 @@ import sys
 from PyQt5 import QtCore, QtSql
 from PyQt5.QtCore import QDate, Qt
 from PyQt5.QtSql import QSqlQueryModel, QSqlRelation, QSqlRelationalDelegate
-from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QInputDialog, QTableWidgetItem, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QInputDialog, QTableWidgetItem, QMessageBox, \
+    QAbstractItemView
 from PyQT_BD.My_PyQt_db.ui_main import Ui_MainWindow
 
 from PyQT_BD.My_PyQt_db.ui_services import Ui_Dialog_services
@@ -50,15 +51,18 @@ class Window(QMainWindow, Ui_MainWindow):
         #                                  "how to build it.\n\n" "Click Cancel to exit."),
         #                          QMessageBox.Cancel)
         # создаём для неё модель данных
-        # self.sqlModel = QtSql.QSqlTableModel(self)
+
         self.sqlModel = QtSql.QSqlRelationalTableModel(self)
+        self.sqlModel.setJoinMode(QtSql.QSqlRelationalTableModel.LeftJoin)
         # указываем таблицу из БД для модели
         self.sqlModel.setTable('def_message')
         # Выбираем стратегию редактирвоания
-        self.sqlModel.setEditStrategy(QtSql.QSqlTableModel.OnFieldChange)
+        # self.sqlModel.setEditStrategy(QtSql.QSqlTableModel.OnFieldChange)
+        self.sqlModel.setEditStrategy(QtSql.QSqlTableModel.OnManualSubmit)
         # связь
         self.sqlModel.setRelation(4, QSqlRelation("user", "id", "FIO"));
         self.sqlModel.setRelation(2, QSqlRelation("services", "id", "name"));
+
 
         # загружаем данные из таблицы в модель
         self.sqlModel.select()
@@ -72,6 +76,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.tableView.setModel(self.sqlModel)
 
         self.tableView.setItemDelegate(QSqlRelationalDelegate(self.tableView))
+        self.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         # self.tableView.setColumnHidden(0, True)
         # self.tableView.setColumnHidden(1, True)
@@ -79,21 +84,52 @@ class Window(QMainWindow, Ui_MainWindow):
         self.btProblemAdd.clicked.connect(self.addrow)
         self.btProblemDel.clicked.connect(self.delrow)
         self.btProblemFind.clicked.connect(self.findText)
+        self.btProblemSave.clicked.connect(self.save)
+        self.btProblemCancel.clicked.connect(self.cancel)
+        self.btProblemReset.clicked.connect(self.reset)
+
+
 
         #
         # # создаём ссылку на модель-выбора (именно из неё можно получить текущий индекс ячейки) в сетке-гриде-таблице
         # selModel = self.tableView.selectionModel()
 
+    def save(self):
+        self.sqlModel.submitAll()
+        self.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.btProblemSave.setEnabled(False)
+        self.btProblemCancel.setEnabled(False)
+
+    def cancel(self):
+        self.sqlModel.revertAll()
+        self.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.btProblemSave.setEnabled(False)
+        self.btProblemCancel.setEnabled(False)
+
+
     def addrow(self):
         #  добавить строку
+        self.tableView.setEditTriggers(QAbstractItemView.AllEditTriggers)
         ret = self.sqlModel.insertRows(self.sqlModel.rowCount(), 1)
+        self.btProblemSave.setEnabled(True)
+        self.btProblemCancel.setEnabled(True)
 
     def delrow(self):
+        self.tableView.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.sqlModel.removeRow(self.tableView.currentIndex().row())
+        self.sqlModel.select()
+        self.btProblemSave.setEnabled(True)
+        self.btProblemCancel.setEnabled(True)
 
     def findText(self):
+        self.sqlModel.setFilter("text LIKE '%"+self.EditFind.text()+"%'")
+        self.sqlModel.select()
+        self.btProblemReset.setEnabled(True)
 
-        self.sqlModel.setFilter("Name='Anderson'")
+    def reset(self):
+        self.sqlModel.setFilter("")
+        self.btProblemReset.setEnabled(False)
+
 
     def unit_dialog(self):
         """
