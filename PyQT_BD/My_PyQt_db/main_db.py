@@ -68,7 +68,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.sqlModel.setHeaderData(0, QtCore.Qt.Horizontal, 'Номер заявки')
         self.sqlModel.setHeaderData(1, QtCore.Qt.Horizontal, 'Дата')
         self.sqlModel.setHeaderData(2, QtCore.Qt.Horizontal, 'Служба')
-        self.sqlModel.setHeaderData(3, QtCore.Qt.Horizontal, 'Текст неисправности')
+        self.sqlModel.setHeaderData(3, QtCore.Qt.Horizontal, 'Текст заявки')
         self.sqlModel.setHeaderData(4, QtCore.Qt.Horizontal, 'Пользователь')
         # назначаем сетке-гриду-таблице-представлению модель данных
         self.tableView.setModel(self.sqlModel)
@@ -76,6 +76,9 @@ class Window(QMainWindow, Ui_MainWindow):
         self.tableView.setItemDelegate(QSqlRelationalDelegate(self.tableView))
         # запрещаем редактирование таблицы
         self.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        # колонки по ширине содержимого
+        self.tableView.resizeColumnsToContents()
+        self.tableView.verticalHeader().setVisible(False)
 
         # Добавить заявку
         self.btProblemAdd.clicked.connect(self.addrow)
@@ -101,13 +104,14 @@ class Window(QMainWindow, Ui_MainWindow):
         self.btProblemSave.setEnabled(True)
         self.btProblemCancel.setEnabled(True)
 
-
     def save(self):
         """
         Вызывается по кнопке "Сохранить заявку"
         """
         self.sqlModel.submitAll()
         self.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.btProblemAdd.setEnabled(True)
+        self.btProblemUpdate.setEnabled(True)
         self.tableView.setColumnHidden(0, False)
         self.tableView.setColumnHidden(1, False)
         self.btProblemSave.setEnabled(False)
@@ -119,6 +123,10 @@ class Window(QMainWindow, Ui_MainWindow):
         """
         self.sqlModel.revertAll()
         self.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.btProblemAdd.setEnabled(True)
+        self.btProblemUpdate.setEnabled(True)
+        self.tableView.setColumnHidden(0, False)
+        self.tableView.setColumnHidden(1, False)
         self.btProblemSave.setEnabled(False)
         self.btProblemCancel.setEnabled(False)
 
@@ -126,11 +134,12 @@ class Window(QMainWindow, Ui_MainWindow):
         """
         Вызывается по кнопке "Добавить заявку"
         """
-        QMessageBox.information(self, 'Текст', str((self.tableView.currentIndex().row(),self.tableView.currentIndex().column()) ))
+        self.btProblemAdd.setEnabled(False)
+        self.btProblemUpdate.setEnabled(False)
+        # QMessageBox.information(self, 'Текст', str((self.tableView.currentIndex().row(),self.tableView.currentIndex().column()) ))
         self.tableView.setColumnHidden(0, True)
         self.tableView.setColumnHidden(1, True)
         self.tableView.setEditTriggers(QAbstractItemView.AllEditTriggers)
-
 
         ret = self.sqlModel.insertRows(self.sqlModel.rowCount(), 1)
         self.btProblemSave.setEnabled(True)
@@ -279,10 +288,10 @@ class Unit_win(QDialog, Ui_Dialog_unit):
                 a.append(currentQTableWidgetItem.text())
             # Удаление строки
             sql = 'DELETE FROM  unit WHERE id  =' + str(a[0])
-            self.con = sqlite3.connect('ProblemDB.db')
-            cur = self.con.cursor()
-            self.cur.execute(sql)
-            self.cur.commit()
+            con = sqlite3.connect('ProblemDB.db')
+            # cur = self.con.cursor()
+            con.execute(sql)
+            con.commit()
             self.tableUnit.removeRow(currentQTableWidgetItem.row())
         else:
             QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
@@ -364,6 +373,7 @@ class Unit_new_win(QDialog, Ui_Dialog_unit_new):
         Функция вызывается по нажатию кнопки "Записать" на форме
         :return:
         """
+        QMessageBox.information(self, 'Отладка', str(111))
         er1 = False
         er2 = False
         if self.Edit_Unit.text() == '':
@@ -371,16 +381,21 @@ class Unit_new_win(QDialog, Ui_Dialog_unit_new):
             er1 = True
         elif self.CB_unit.currentText() == '':
             with sqlite3.connect('ProblemDB.db') as con:
-                cur = con.cursor()
-                cur.execute('INSERT into unit(name,shortname) VALUES (?,?)',
+                # cur = con.cursor()
+                QMessageBox.information(self, 'Отладка', str(222))
+                QMessageBox.information(self, 'Отладка', self.Edit_Unit.text())
+                QMessageBox.information(self, 'Отладка', self.Edit_Short_Unit.text())
+                con.execute('INSERT into unit(name,shortname) VALUES (?,?)',
                             (self.Edit_Unit.text(), self.Edit_Short_Unit.text()))
-                cur.commit()
+                con.commit()
+                QMessageBox.information(self, 'Отладка', str(345))
         else:
             # подразделение вышестоящее
             with sqlite3.connect('ProblemDB.db') as con:
                 sql = """SELECT id FROM unit where name ='""" + self.CB_unit.currentText() + """'"""
                 # QMessageBox.information(self, 'Отладка', str(sql))
                 cur = con.cursor()
+                QMessageBox.information(self, 'Отладка', str(33))
                 cur.execute(sql)
                 id_un = cur.fetchone()
                 if id_un == None:
@@ -390,14 +405,15 @@ class Unit_new_win(QDialog, Ui_Dialog_unit_new):
                     # print(id_un)
                     er2 = False
                     # print(id_un[0])
-                    # QMessageBox.information(self, 'Отладка', str(id_un))
+                    QMessageBox.information(self, 'Отладка', str(id_un))
                     with sqlite3.connect('ProblemDB.db') as con:
-                        cur = con.cursor()
-                        cur.execute('INSERT into unit(name,shortname,unitId) VALUES (?,?,?)',
+                        # cur = con.cursor()
+                        con.execute('INSERT into unit(name,shortname,unitId) VALUES (?,?,?)',
                                     (self.Edit_Unit.text(), self.Edit_Short_Unit.text(), str(id_un[0])))
-                        cur.commit()
+                        con.commit()
 
         if (not er1 and not er2):
+            QMessageBox.information(self, 'Отладка', 'accept')
             self.accept()
 
     def bt_cancel_unit_new(self):
@@ -444,10 +460,10 @@ class Unit_update_win(QDialog, Ui_Dialog_unit_update):
             er1 = True
         elif self.CB_unit_up.currentText() == '':
             with sqlite3.connect('ProblemDB.db') as con:
-                cur = con.cursor()
-                cur.execute('UPDATE unit set name=?,shortname=? where id=?',
+                # cur = con.cursor()
+                con.execute('UPDATE unit set name=?,shortname=? where id=?',
                             (self.Edit_Unit_up.text(), self.Edit_Short_Unit_up.text()), self.Edit_Id.text())
-                cur.commit()
+                con.commit()
         else:
             # подразделение вышестоящее
             with sqlite3.connect('ProblemDB.db') as con:
@@ -461,11 +477,11 @@ class Unit_update_win(QDialog, Ui_Dialog_unit_update):
                 else:
                     er2 = False
                     with sqlite3.connect('ProblemDB.db') as con:
-                        cur = con.cursor()
-                        cur.execute('UPDATE unit set name= ?,shortname=?,unitId=? where id=?',
+                        # cur = con.cursor()
+                        con.execute('UPDATE unit set name= ?,shortname=?,unitId=? where id=?',
                                     (self.Edit_Unit_up.text(), self.Edit_Short_Unit_up.text(), str(id_un[0]),
                                      self.Edit_Id.text()))
-                        cur.commit()
+                        con.commit()
 
         if (not er1 and not er2):
             self.accept()
@@ -559,9 +575,9 @@ class User_win(QDialog, Ui_Dialog_user):
             # Удаление строки
             sql = 'DELETE FROM  user WHERE id  =' + str(a[0])
             with sqlite3.connect('ProblemDB.db') as con:
-                cur = con.cursor()
-                self.cur.execute(sql)
-                self.cur.commit()
+                # cur = con.cursor()
+                con.execute(sql)
+                con.commit()
                 self.tableUser.removeRow(currentQTableWidgetItem.row())
         else:
             QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
@@ -602,8 +618,12 @@ class User_win(QDialog, Ui_Dialog_user):
             for row in data:
                 dialog_user_update.CB_unit_up.addItem(*row)
                 # Устанавливаем текущее значение
-                dialog_user_update.CB_unit_up.setCurrentText(str(a[4]))
-            # Показываем форму для изменения занчений
+                index = dialog_user_update.CB_unit_up.findText(str(a[4]))
+                if index > -1:
+                    dialog_user_update.CB_unit_up.setCurrentIndex(index)
+
+                # dialog_user_update.CB_unit_up.setCurrentText(str(a[4]))
+            # Показываем форму для изменения значений
             dialog_user_update.show()
             if dialog_user_update.exec() == QDialog.Accepted:
                 self.tableUser.setRowCount(0)
@@ -637,7 +657,7 @@ class User_new_win(QDialog, Ui_Dialog_user_new):
         self.setupUi(self)
 
         self.CB_unit.setEditable(True)
-        self.CB_unit.editTextChanged.connect(self.findText)
+        self.CB_unit.editTextChanged.connect(self.find_Text)
 
         # нажата кнопка "Записать"
         self.btnUser_Ok.clicked.connect(self.bt_ok_user_new)
@@ -680,10 +700,10 @@ class User_new_win(QDialog, Ui_Dialog_user_new):
                 else:
                     er2 = False
                     with sqlite3.connect('ProblemDB.db') as con:
-                        cur = con.cursor()
-                        cur.execute('INSERT into user(FIO,birthday,gender,unitId) VALUES (?,?,?,?)',
+                        # cur = con.cursor()
+                        con.execute('INSERT into user(FIO,birthday,gender,unitId) VALUES (?,?,?,?)',
                                     (self.Edit_Fio.text(), str(td), p, str(id_un[0])))
-                        cur.commit()
+                        con.commit()
 
         if (not er1 and not er2):
             self.accept()
@@ -695,7 +715,7 @@ class User_new_win(QDialog, Ui_Dialog_user_new):
         """
         self.close()
 
-    def findText(self, s):
+    def find_Text(self, s):
         """
         функция поиска введенного текста в поле Подразделение
         :param s: строка текста для поиска соответствия
@@ -756,10 +776,10 @@ class User_update_win(QDialog, Ui_Dialog_user_update):
                 else:
                     er2 = False
                     with sqlite3.connect('ProblemDB.db') as con:
-                        cur = con.cursor()
-                        cur.execute('Update user set FIO= ? , birthday= ?, gender =? ,unitId=? where id =?',
+                        # cur = con.cursor()
+                        con.execute('Update user set FIO= ? , birthday= ?, gender =? ,unitId=? where id =?',
                                     (self.Edit_Fio_up.text(), str(td), p, str(id_un[0]), self.Edit_Id.text()))
-                        cur.commit()
+                        con.commit()
 
         if (not er1 and not er2):
             self.accept()
@@ -807,15 +827,6 @@ class Services_win(QDialog, Ui_Dialog_services):
             # установить текущей первую из найденых ячеек
             self.tableSevices.selectRow(items[0].row())
 
-    # def bt_find_services(self):
-    #     txt=self.lineEdit.text()
-    #     items = self.tableSevices.findItems(str(txt),QtCore.Qt.MatchContains)
-    #     if items:  # если список не пустой
-    #         # установить текущей первую из найденых ячеек
-    #         self.tableSevices.selectRow(items[0].row())
-    #     else:
-    #         QMessageBox.information(self, 'Информация', 'Поиск не дал результатов')
-
     def bt_add_services(self):
         """
         Функция выполняется при нажатии кнопки "Добавить строку" на форме "Сервисные службы"
@@ -825,15 +836,16 @@ class Services_win(QDialog, Ui_Dialog_services):
         table = self.tableSevices
 
         if ok:
-            with sqlite3.connect('ProblemDB.db') as con:
-                cur = con.cursor()
-                cur.execute('INSERT into services(name) VALUES (?)', (serv,))
-                cur.commit()
-                table.setRowCount(0)
-                for row_number, row in enumerate(cur.execute("""select id,name from services""").fetchall()):
-                    table.insertRow(row_number)
-                    for col_number, col in enumerate(row):
-                        table.setItem(row_number, col_number, QTableWidgetItem(str(col)))
+            # with sqlite3.connect('ProblemDB.db') as con:
+            con = sqlite3.connect('ProblemDB.db')
+            # cur = con.cursor()
+            con.execute('INSERT into services(name) VALUES (?)', (serv,))
+            con.commit()
+            table.setRowCount(0)
+            for row_number, row in enumerate(con.execute("""select id,name from services""").fetchall()):
+                table.insertRow(row_number)
+                for col_number, col in enumerate(row):
+                    table.setItem(row_number, col_number, QTableWidgetItem(str(col)))
 
     def bt_del_services(self):
         """
@@ -848,9 +860,9 @@ class Services_win(QDialog, Ui_Dialog_services):
             # Удаление строки
             sql = 'DELETE FROM  services WHERE id  =' + str(a[0])
             with sqlite3.connect('ProblemDB.db') as con:
-                cur = con.cursor()
-                self.cur.execute(sql)
-                self.cur.commit()
+                con.execute(sql)
+                con.commit()
+
             self.tableSevices.removeRow(currentQTableWidgetItem.row())
         else:
             QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
