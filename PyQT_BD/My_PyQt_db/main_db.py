@@ -27,7 +27,6 @@ class Window(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
 
         # Обработка действий по меню
-
         # нажата кнопка меню "Справочники -> Подразделения"
         self.unit_action.triggered.connect(self.unit_dialog)
 
@@ -63,7 +62,6 @@ class Window(QMainWindow, Ui_MainWindow):
         self.sqlModel.setRelation(4, QSqlRelation("user", "id", "FIO"));
         self.sqlModel.setRelation(2, QSqlRelation("services", "id", "name"));
 
-
         # загружаем данные из таблицы в модель
         self.sqlModel.select()
         # указываем заголовки столбцов
@@ -76,60 +74,94 @@ class Window(QMainWindow, Ui_MainWindow):
         self.tableView.setModel(self.sqlModel)
 
         self.tableView.setItemDelegate(QSqlRelationalDelegate(self.tableView))
+        # запрещаем редактирование таблицы
         self.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
-        # self.tableView.setColumnHidden(0, True)
-        # self.tableView.setColumnHidden(1, True)
-
+        # Добавить заявку
         self.btProblemAdd.clicked.connect(self.addrow)
+        # Изменить заявку
+        self.btProblemUpdate.clicked.connect(self.updrow)
+        # Удалить заявку
         self.btProblemDel.clicked.connect(self.delrow)
-        self.btProblemFind.clicked.connect(self.findText)
+        # Сохранить заявку
         self.btProblemSave.clicked.connect(self.save)
+        # Отменить изменения
         self.btProblemCancel.clicked.connect(self.cancel)
+        # Найти заявку
+        self.btProblemFind.clicked.connect(self.findText)
+        # Сбросить фильтр
         self.btProblemReset.clicked.connect(self.reset)
 
+    def updrow(self):
+        self.btProblemAdd.setEnabled(False)
+        self.btProblemUpdate.setEnabled(False)
+        self.tableView.setColumnHidden(0, True)
+        self.tableView.setColumnHidden(1, True)
+        self.tableView.setEditTriggers(QAbstractItemView.AllEditTriggers)
+        self.btProblemSave.setEnabled(True)
+        self.btProblemCancel.setEnabled(True)
 
-
-        #
-        # # создаём ссылку на модель-выбора (именно из неё можно получить текущий индекс ячейки) в сетке-гриде-таблице
-        # selModel = self.tableView.selectionModel()
 
     def save(self):
+        """
+        Вызывается по кнопке "Сохранить заявку"
+        """
         self.sqlModel.submitAll()
         self.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.tableView.setColumnHidden(0, False)
+        self.tableView.setColumnHidden(1, False)
         self.btProblemSave.setEnabled(False)
         self.btProblemCancel.setEnabled(False)
 
     def cancel(self):
+        """
+        Вызывается по кнопке "Отменить изменения в заявке"
+        """
         self.sqlModel.revertAll()
         self.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.btProblemSave.setEnabled(False)
         self.btProblemCancel.setEnabled(False)
 
-
     def addrow(self):
-        #  добавить строку
+        """
+        Вызывается по кнопке "Добавить заявку"
+        """
+        QMessageBox.information(self, 'Текст', str((self.tableView.currentIndex().row(),self.tableView.currentIndex().column()) ))
+        self.tableView.setColumnHidden(0, True)
+        self.tableView.setColumnHidden(1, True)
         self.tableView.setEditTriggers(QAbstractItemView.AllEditTriggers)
+
+
         ret = self.sqlModel.insertRows(self.sqlModel.rowCount(), 1)
         self.btProblemSave.setEnabled(True)
         self.btProblemCancel.setEnabled(True)
 
     def delrow(self):
+        """
+        Вызывается по кнопке "Удалить заявку"
+        """
         self.tableView.setEditTriggers(QAbstractItemView.AllEditTriggers)
+        # QMessageBox.information(self, 'Текст',str((self.tableView.currentIndex().row(), self.tableView.currentIndex().column())))
         self.sqlModel.removeRow(self.tableView.currentIndex().row())
+        self.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.sqlModel.select()
         self.btProblemSave.setEnabled(True)
         self.btProblemCancel.setEnabled(True)
 
     def findText(self):
-        self.sqlModel.setFilter("text LIKE '%"+self.EditFind.text()+"%'")
+        """
+        Вызывается по кнопке "Найти заявку"
+        """
+        self.sqlModel.setFilter("text LIKE '%" + self.EditFind.text() + "%'")
         self.sqlModel.select()
         self.btProblemReset.setEnabled(True)
 
     def reset(self):
+        """
+        Вызывается по кнопке "Сбросить фильтр"
+        """
         self.sqlModel.setFilter("")
         self.btProblemReset.setEnabled(False)
-
 
     def unit_dialog(self):
         """
@@ -195,6 +227,7 @@ class Unit_win(QDialog, Ui_Dialog_unit):
         # Нажата кнопка "Обновить строку" на форме "Подразделения"
         self.btUnitUpdate.clicked.connect(self.bt_upd_unit)
 
+        # поиск
         self.lineEdit.textChanged.connect(self.text_changed_find)
 
     def text_changed_find(self):
