@@ -2,10 +2,11 @@ import sqlite3
 import sys
 from PyQt5 import QtCore, QtSql
 from PyQt5.QtCore import QDate, Qt
-from PyQt5.QtSql import QSqlQueryModel, QSqlRelation, QSqlRelationalDelegate
+from PyQt5.QtSql import QSqlQueryModel, QSqlRelation, QSqlRelationalDelegate, QSqlQuery
 from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QInputDialog, QTableWidgetItem, QMessageBox, \
-    QAbstractItemView
+    QAbstractItemView, QHeaderView
 from PyQT_BD.My_PyQt_db.ui_main import Ui_MainWindow
+from PyQT_BD.My_PyQt_db.ui_main_edit import Ui_EdMain
 
 from PyQT_BD.My_PyQt_db.ui_services import Ui_Dialog_services
 from PyQT_BD.My_PyQt_db.ui_services_update import Ui_Dialog
@@ -18,13 +19,12 @@ from PyQT_BD.My_PyQt_db.ui_user_update import Ui_Dialog_user_update
 
 
 class Window(QMainWindow, Ui_MainWindow):
-    """
-    Основное окно программы
-    """
-
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+
+        self.model = QSqlQueryModel()
+        self.connectToSql()
 
         # Обработка действий по меню
         # нажата кнопка меню "Справочники -> Подразделения"
@@ -36,141 +36,261 @@ class Window(QMainWindow, Ui_MainWindow):
         # нажата кнопка меню "Справочники -> Сервисные службы"
         self.services_action.triggered.connect(self.services_dialog)
 
-        # Работа с самой формой
-        # Соединение с базой
-        # con = sqlite3.connect('ProblemDB.db')
-        myconnection = QtSql.QSqlDatabase.addDatabase("QSQLITE")  # создаём подключение
-        myconnection.setDatabaseName("ProblemDB.db")
-        myconnection.open()
-        # if not myconnection.open():
-        #     QMessageBox.critical(None, qApp.tr("Cannot open database"),
-        #                          qApp.tr("Unable to establish a database connection.\n"
-        #                                  "This example needs SQLite support. Please read "
-        #                                  "the Qt SQL driver documentation for information "
-        #                                  "how to build it.\n\n" "Click Cancel to exit."),
-        #                          QMessageBox.Cancel)
-        # создаём для неё модель данных
-
-        self.sqlModel = QtSql.QSqlRelationalTableModel(self)
-        self.sqlModel.setJoinMode(QtSql.QSqlRelationalTableModel.LeftJoin)
-        # указываем таблицу из БД для модели
-        self.sqlModel.setTable('def_message')
-        # Выбираем стратегию редактирвоания
-        # self.sqlModel.setEditStrategy(QtSql.QSqlTableModel.OnFieldChange)
-        self.sqlModel.setEditStrategy(QtSql.QSqlTableModel.OnManualSubmit)
-        # связь
-        self.sqlModel.setRelation(4, QSqlRelation("user", "id", "FIO"))
-        self.sqlModel.setRelation(2, QSqlRelation("services", "id", "name"))
-
-        # загружаем данные из таблицы в модель
-        self.sqlModel.select()
-        # указываем заголовки столбцов
-        self.sqlModel.setHeaderData(0, QtCore.Qt.Horizontal, 'Номер заявки')
-        self.sqlModel.setHeaderData(1, QtCore.Qt.Horizontal, 'Дата')
-        self.sqlModel.setHeaderData(2, QtCore.Qt.Horizontal, 'Служба')
-        self.sqlModel.setHeaderData(3, QtCore.Qt.Horizontal, 'Текст заявки')
-        self.sqlModel.setHeaderData(4, QtCore.Qt.Horizontal, 'Пользователь')
-        # назначаем сетке-гриду-таблице-представлению модель данных
-        self.tableView.setModel(self.sqlModel)
-
-        self.tableView.setItemDelegate(QSqlRelationalDelegate(self.tableView))
-        # запрещаем редактирование таблицы
-        self.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        # колонки по ширине содержимого
-        self.tableView.resizeColumnsToContents()
-        self.tableView.verticalHeader().setVisible(False)
-
-        # Добавить заявку
-        self.btProblemAdd.clicked.connect(self.addrow)
-        # Изменить заявку
-        self.btProblemUpdate.clicked.connect(self.updrow)
-        # Удалить заявку
-        self.btProblemDel.clicked.connect(self.delrow)
-        # Сохранить заявку
-        self.btProblemSave.clicked.connect(self.save)
-        # Отменить изменения
-        self.btProblemCancel.clicked.connect(self.cancel)
+        # Работа с основной формой
+        # Нажата кнопка "Добавить строку" на форме
+        self.btProblemAdd.clicked.connect(self.bt_add)
+        # Нажата кнопка "Обновить строку" на форме
+        self.btProblemUpdate.clicked.connect(self.bt_upd)
+        # Нажата кнопка "Удалить строку" на форме
+        self.btProblemDel.clicked.connect(self.bt_del)
         # Найти заявку
         self.btProblemFind.clicked.connect(self.findText)
         # Сбросить фильтр
         self.btProblemReset.clicked.connect(self.reset)
 
-    def updrow(self):
-        self.btProblemAdd.setEnabled(False)
-        self.btProblemUpdate.setEnabled(False)
-        self.tableView.setColumnHidden(0, True)
-        self.tableView.setColumnHidden(1, True)
-        self.tableView.setEditTriggers(QAbstractItemView.AllEditTriggers)
-        self.btProblemSave.setEnabled(True)
-        self.btProblemCancel.setEnabled(True)
+    def connectToSql(self):
+        """
+        Открываем базу и создаем запрос и соединяем модель с таблицей
+        """
+        self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")  # создаём подключение
+        self.db.setDatabaseName("ProblemDB.db")
+        if self.db.open():
+            self.qry = QSqlQuery(self.db)
+            self.qry.prepare("""SELECT d.id, dat, s.name, d.text, u.FIO FROM def_message  d
+            Left Join services s
+            on d.idServices = s.id
+            left join  User u
+            on d.idUser = u.id""")
+            self.qry.exec()
 
-    def save(self):
-        """
-        Вызывается по кнопке "Сохранить заявку"
-        """
-        self.sqlModel.submitAll()
-        self.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.btProblemAdd.setEnabled(True)
-        self.btProblemUpdate.setEnabled(True)
-        self.tableView.setColumnHidden(0, False)
-        self.tableView.setColumnHidden(1, False)
-        self.btProblemSave.setEnabled(False)
-        self.btProblemCancel.setEnabled(False)
+            self.model.setQuery(self.qry)
+            self.tableView.setModel(self.model)
+            self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
 
-    def cancel(self):
-        """
-        Вызывается по кнопке "Отменить изменения в заявке"
-        """
-        self.sqlModel.revertAll()
-        self.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.btProblemAdd.setEnabled(True)
-        self.btProblemUpdate.setEnabled(True)
-        self.tableView.setColumnHidden(0, False)
-        self.tableView.setColumnHidden(1, False)
-        self.btProblemSave.setEnabled(False)
-        self.btProblemCancel.setEnabled(False)
+            self.model.setHeaderData(0, Qt.Horizontal, '№ заявки')
+            self.model.setHeaderData(1, Qt.Horizontal, 'Дата')
+            self.model.setHeaderData(2, Qt.Horizontal, 'Служба')
+            self.model.setHeaderData(3, Qt.Horizontal, 'Текст заявки')
+            self.model.setHeaderData(4, Qt.Horizontal, 'ФИО заявителя')
+        else:
+            QMessageBox.critical(self, 'error', self.model.lastError().text())
 
-    def addrow(self):
+    def bt_add(self):
         """
-        Вызывается по кнопке "Добавить заявку"
+        Вызывается по нажатию кнопки "Добавить строку"
         """
-        self.btProblemAdd.setEnabled(False)
-        self.btProblemUpdate.setEnabled(False)
-        # QMessageBox.information(self, 'Текст', str((self.tableView.currentIndex().row(),self.tableView.currentIndex().column()) ))
-        self.tableView.setColumnHidden(0, True)
-        self.tableView.setColumnHidden(1, True)
-        self.tableView.setEditTriggers(QAbstractItemView.AllEditTriggers)
+        dialog_add = Ed_win(self)
+        # Устанавливаем пустые значения в поля на форме
+        dialog_add.edit_text.setText = ''
+        dialog_add.cb_ser_name.setCurrentIndex(-1)
+        dialog_add.cb_fio.setCurrentIndex(-1)
+        # открываем окно добавления
+        dialog_add.show()
 
-        ret = self.sqlModel.insertRows(self.sqlModel.rowCount(), 1)
-        self.btProblemSave.setEnabled(True)
-        self.btProblemCancel.setEnabled(True)
+        # Если нажата кнопка ОК на форме добавления
+        if dialog_add.exec() == QDialog.Accepted:
+            ser = dialog_add.cb_ser_name.currentText()
+            user = dialog_add.cb_fio.currentText()
 
-    def delrow(self):
+            self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")  # создаём подключение
+            self.db.setDatabaseName("ProblemDB.db")
+
+            if self.db.open():
+                qry1 = QSqlQuery(self.db)
+                qry1.prepare("""SELECT s.id FROM  services s
+                where s.name =:ser""")
+                qry1.bindValue(":ser", ser)
+                qry1.exec()
+                qry1.next()
+                servId = qry1.value(0)
+
+                qry1.prepare("""SELECT u.id FROM  User u
+                                where u.FIO =:user""")
+                qry1.bindValue(":user", user)
+                qry1.exec()
+                qry1.next()
+                userId = qry1.value(0)
+
+                qry1.prepare("""INSERT INTO def_message(idServices, text,idUser) 
+                        VALUES(:idService, :text,:idUser)""")
+
+                qry1.bindValue(":idService", servId)
+                qry1.bindValue(":text", dialog_add.edit_text.text())
+                qry1.bindValue(":idUser", userId)
+                qry1.exec()
+
+                self.qry = QSqlQuery(self.db)
+                self.qry.prepare("""SELECT d.id, dat, s.name, d.text, u.FIO 
+                        FROM def_message  d
+                        Left Join services s
+                        on d.idServices = s.id
+                        left join  User u
+                        on d.idUser = u.id""")
+                self.qry.exec()
+
+                self.model.setQuery(self.qry)
+                self.tableView.setModel(self.model)
+            else:
+                QMessageBox.critical(self, 'error', self.model.lastError().text())
+
+    def bt_upd(self):
         """
-        Вызывается по кнопке "Удалить заявку"
+        Вызывается по нажатию кнопки "Изменить строку"
         """
-        self.tableView.setEditTriggers(QAbstractItemView.AllEditTriggers)
-        # QMessageBox.information(self, 'Текст',str((self.tableView.currentIndex().row(), self.tableView.currentIndex().column())))
-        self.sqlModel.removeRow(self.tableView.currentIndex().row())
-        self.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.sqlModel.select()
-        self.btProblemSave.setEnabled(True)
-        self.btProblemCancel.setEnabled(True)
+        dialog_add = Ed_win(self)
+
+        # определяем индекс строки в таблице
+        index = self.tableView.currentIndex().row()
+        print(index)
+        if index==-1:
+            QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
+        else:
+            # определяем id строки в таблице в базе данных
+            nom = str(self.model.data(self.model.index(index, 0), Qt.DisplayRole))
+
+            # устанавливаем текст заявки в поле edit_text
+            dialog_add.edit_text.setText(str(self.model.data(self.model.index(index, 3), Qt.DisplayRole)))
+
+            # Данные по сервисной службе
+            index_serv = dialog_add.cb_ser_name.findText(
+                str(self.model.data(self.model.index(index, 2), Qt.DisplayRole)))
+
+            if index_serv > -1:
+                dialog_add.cb_ser_name.setCurrentIndex(index_serv)
+            else:
+                dialog_add.cb_ser_name.setCurrentIndex(-1)
+
+            # Данные по сотруднику, который подал заявку
+            index_fio = dialog_add.cb_fio.findText(str(self.model.data(self.model.index(index, 4), Qt.DisplayRole)))
+
+            if index_fio > -1:
+                dialog_add.cb_fio.setCurrentIndex(index_fio)
+            else:
+                dialog_add.cb_fio.setCurrentIndex(-1)
+
+            # ОТкрываем окно с данными для редактирования
+            dialog_add.show()
+
+            # если нажата кнопка ОК в окне для редактирования строки
+            if dialog_add.exec() == QDialog.Accepted:
+                ser = dialog_add.cb_ser_name.currentText()
+                user = dialog_add.cb_fio.currentText()
+
+                self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")  # создаём подключение
+                self.db.setDatabaseName("ProblemDB.db")
+
+                if self.db.open():
+                    qry1 = QSqlQuery(self.db)
+                    qry1.prepare("""SELECT s.id FROM  services s
+                                   where s.name =:ser""")
+                    qry1.bindValue(":ser", ser)
+                    qry1.exec()
+                    qry1.next()
+                    servId = qry1.value(0)
+
+                    qry1.prepare("""SELECT u.id FROM  User u
+                                                   where u.FIO =:user""")
+                    qry1.bindValue(":user", user)
+                    qry1.exec()
+                    qry1.next()
+                    userId = qry1.value(0)
+
+                    qry1.prepare("""UPDATE def_message SET idServices=:servId, text=:txt,idUser=:userId WHERE id=:id""")
+                    qry1.bindValue(":servId", servId)
+                    qry1.bindValue(":txt", dialog_add.edit_text.text())
+                    qry1.bindValue(":userId", userId)
+                    qry1.bindValue(":id", nom)
+                    qry1.exec()
+
+                    # снова делаем выборку данных после проведения обновления данных
+                    self.qry = QSqlQuery(self.db)
+                    self.qry.prepare("""SELECT d.id, dat, s.name, d.text, u.FIO FROM def_message  d
+                                                   Left Join services s
+                                                   on d.idServices = s.id
+                                                   left join  User u
+                                                   on d.idUser = u.id""")
+                    self.qry.exec()
+
+                    self.model.setQuery(self.qry)
+                    self.tableView.setModel(self.model)
+                else:
+                    QMessageBox.critical(self, 'error', self.model.lastError().text())
+
+
+
+
+    def bt_del(self):
+        """
+        Вызывается по нажатию кнопки "Удалить строку"
+        """
+        quit_msg = "Подтвердите удаление записи"
+        reply = QMessageBox.question(self, 'Confirm', quit_msg, QMessageBox.Yes, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            index = self.tableView.currentIndex().row()
+            nom = str(self.model.data(self.model.index(index, 0), Qt.DisplayRole))
+            self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")  # создаём подключение
+            self.db.setDatabaseName("ProblemDB.db")
+
+            if self.db.open():
+                qry1 = QSqlQuery(self.db)
+                qry1.prepare("""DELETE  FROM  def_message 
+                                           where id =:id""")
+                qry1.bindValue(":id", nom)
+                qry1.exec()
+
+                self.qry = QSqlQuery(self.db)
+                self.qry.prepare("""SELECT d.id, dat, s.name, d.text, u.FIO FROM def_message  d
+                                                               Left Join services s
+                                                               on d.idServices = s.id
+                                                               left join  User u
+                                                               on d.idUser = u.id""")
+                self.qry.exec()
+                self.model.setQuery(self.qry)
+                self.tableView.setModel(self.model)
+            else:
+                QMessageBox.critical(self, 'error', self.model.lastError().text())
 
     def findText(self):
         """
         Вызывается по кнопке "Найти заявку"
         """
-        self.sqlModel.setFilter("text LIKE '%" + self.EditFind.text() + "%'")
-        self.sqlModel.select()
-        self.btProblemReset.setEnabled(True)
+        self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")  # создаём подключение
+        self.db.setDatabaseName("ProblemDB.db")
+
+        if self.db.open():
+            self.qry = QSqlQuery(self.db)
+            self.qry.prepare("""SELECT d.id, dat, s.name, d.text, u.FIO FROM def_message  d
+                   Left Join services s
+                   on d.idServices = s.id
+                   left join  User u
+                   on d.idUser = u.id where d.text Like :txt """)
+            self.qry.bindValue(":txt", '%' + self.EditFind.text() + '%')
+            self.qry.exec()
+
+            self.model.setQuery(self.qry)
+            self.tableView.setModel(self.model)
+        else:
+            QMessageBox.critical(self, 'error', self.model.lastError().text())
 
     def reset(self):
         """
         Вызывается по кнопке "Сбросить фильтр"
         """
-        self.sqlModel.setFilter("")
-        self.btProblemReset.setEnabled(False)
+        self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")  # создаём подключение
+        self.db.setDatabaseName("ProblemDB.db")
+        if self.db.open():
+            self.qry = QSqlQuery(self.db)
+            self.qry.prepare("""SELECT d.id, dat, s.name, d.text, u.FIO FROM def_message  d
+                          Left Join services s
+                          on d.idServices = s.id
+                          left join  User u
+                          on d.idUser = u.id """)
+            self.qry.exec()
+
+            self.model.setQuery(self.qry)
+            self.tableView.setModel(self.model)
+        else:
+            QMessageBox.critical(self, 'error', self.model.lastError().text())
 
     def unit_dialog(self):
         """
@@ -286,25 +406,28 @@ class Unit_win(QDialog, Ui_Dialog_unit):
         Функция выполняется при нажатии кнопки "Удалить строку" на форме "Сотрудники"
         :return:
         """
-        a = []
-        if self.tableUnit.selectedItems():
-            for currentQTableWidgetItem in self.tableUnit.selectedItems():
-                a.append(currentQTableWidgetItem.text())
-            # Удаление строки
-            sql = 'DELETE FROM  unit WHERE id  =' + str(a[0])
-            con = sqlite3.connect('ProblemDB.db')
-            cur = con.cursor()
-            try:
-                cur.execute(sql)
-            except sqlite3.DatabaseError as err:
-                QMessageBox.information(self, 'Ошибка', err)
+        quit_msg = "Подтвердите удаление записи"
+        reply = QMessageBox.question(self, 'Confirm', quit_msg, QMessageBox.Yes, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            a = []
+            if self.tableUnit.selectedItems():
+                for currentQTableWidgetItem in self.tableUnit.selectedItems():
+                    a.append(currentQTableWidgetItem.text())
+                # Удаление строки
+                sql = 'DELETE FROM  unit WHERE id  =' + str(a[0])
+                con = sqlite3.connect('ProblemDB.db')
+                cur = con.cursor()
+                try:
+                    cur.execute(sql)
+                except sqlite3.DatabaseError as err:
+                    QMessageBox.information(self, 'Ошибка', err)
+                else:
+                    con.commit()
+                cur.close()
+                con.close()
+                self.tableUnit.removeRow(currentQTableWidgetItem.row())
             else:
-                con.commit()
-            cur.close()
-            con.close()
-            self.tableUnit.removeRow(currentQTableWidgetItem.row())
-        else:
-            QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
+                QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
 
     def bt_upd_unit(self):
         """
@@ -581,26 +704,29 @@ class User_win(QDialog, Ui_Dialog_user):
         Функция выполняется при нажатии кнопки "Удалить строку" на форме "Сотрудники"
         :return:
         """
-        a = []
-        if self.tableUser.selectedItems():
-            for currentQTableWidgetItem in self.tableUser.selectedItems():
-                a.append(currentQTableWidgetItem.text())
-            # Удаление строки
-            sql = 'DELETE FROM  user WHERE id  =' + str(a[0])
-            con = sqlite3.connect('ProblemDB.db')
-            cur = con.cursor()
-            try:
-                cur.execute(sql)
-            except sqlite3.DatabaseError as err:
-                QMessageBox.information(self, 'Ошибка', err)
-            else:
-                con.commit()
-            cur.close()
-            con.close()
-            self.tableUser.removeRow(currentQTableWidgetItem.row())
+        quit_msg = "Подтвердите удаление записи"
+        reply = QMessageBox.question(self, 'Confirm', quit_msg, QMessageBox.Yes, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            a = []
+            if self.tableUser.selectedItems():
+                for currentQTableWidgetItem in self.tableUser.selectedItems():
+                    a.append(currentQTableWidgetItem.text())
+                # Удаление строки
+                sql = 'DELETE FROM  user WHERE id  =' + str(a[0])
+                con = sqlite3.connect('ProblemDB.db')
+                cur = con.cursor()
+                try:
+                    cur.execute(sql)
+                except sqlite3.DatabaseError as err:
+                    QMessageBox.information(self, 'Ошибка', err)
+                else:
+                    con.commit()
+                cur.close()
+                con.close()
+                self.tableUser.removeRow(currentQTableWidgetItem.row())
 
-        else:
-            QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
+            else:
+                QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
 
     def bt_upd_user(self):
         """
@@ -804,9 +930,9 @@ class User_update_win(QDialog, Ui_Dialog_user_update):
 
     def bt_cancel_user_up(self):
         """
-              Функция вызывается по нажатию кнопки "Отмена" на форме Обновить данные по сотруднику
-              :return:
-              """
+            Функция вызывается по нажатию кнопки "Отмена" на форме Обновить данные по сотруднику
+            :return:
+        """
         self.close()
 
 
@@ -874,26 +1000,29 @@ class Services_win(QDialog, Ui_Dialog_services):
         Функция выполняется при нажатии кнопки "Удалить строку" на форме "Сервисные службы"
         :return:
         """
-        a = []
-        if self.tableSevices.selectedItems():
-            for currentQTableWidgetItem in self.tableSevices.selectedItems():
-                a.append(currentQTableWidgetItem.text())
+        quit_msg = "Подтвердите удаление записи"
+        reply = QMessageBox.question(self, 'Confirm', quit_msg, QMessageBox.Yes, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            a = []
+            if self.tableSevices.selectedItems():
+                for currentQTableWidgetItem in self.tableSevices.selectedItems():
+                    a.append(currentQTableWidgetItem.text())
 
-            # Удаление строки
-            sql = 'DELETE FROM  services WHERE id  =' + str(a[0])
-            con = sqlite3.connect('ProblemDB.db')
-            cur = con.cursor()
-            try:
-                cur.execute(sql)
-            except sqlite3.DatabaseError as err:
-                QMessageBox.information(self, 'Ошибка', err)
+                # Удаление строки
+                sql = 'DELETE FROM  services WHERE id  =' + str(a[0])
+                con = sqlite3.connect('ProblemDB.db')
+                cur = con.cursor()
+                try:
+                    cur.execute(sql)
+                except sqlite3.DatabaseError as err:
+                    QMessageBox.information(self, 'Ошибка', err)
+                else:
+                    con.commit()
+                cur.close()
+                con.close()
+                self.tableSevices.removeRow(currentQTableWidgetItem.row())
             else:
-                con.commit()
-            cur.close()
-            con.close()
-            self.tableSevices.removeRow(currentQTableWidgetItem.row())
-        else:
-            QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
+                QMessageBox.information(self, 'Ошибка', 'Строка не выбрана')
 
     def bt_upd_services(self):
         """
@@ -936,6 +1065,52 @@ class Services_up_win(QDialog, Ui_Dialog):
     def __init__(self, *args):
         super().__init__(*args)
         self.setupUi(self)
+
+
+class Ed_win(QDialog, Ui_EdMain):
+    """
+    Окно для добавления и редактирования записи
+    """
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setupUi(self)
+        self.servM = QSqlQueryModel()
+        self.userM = QSqlQueryModel()
+
+        self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")  # создаём подключение
+        self.db.setDatabaseName("ProblemDB.db")
+
+        if self.db.open():
+            qry = QSqlQuery(self.db)
+            qry.prepare('select name from services')
+            qry.exec()
+            # QMessageBox.information(self, 'Отладка', 'select name from services')
+            self.servM.setQuery(qry)
+            # QMessageBox.information(self, 'Отладка', '3')
+            self.cb_ser_name.setModel(self.servM)
+
+            qry.prepare('select FIO from User')
+            qry.exec()
+            self.userM.setQuery(qry)
+            self.cb_fio.setModel(self.userM)
+        else:
+            QMessageBox.critical(self, 'error', self.model.lastError().text())
+
+        self.btnOk.clicked.connect(self.bt_ok)
+        self.btnCancel.clicked.connect(self.bt_cancel)
+
+    def bt_ok(self):
+        """
+            Функция вызывается по нажатию кнопки "ОК"
+        """
+        self.accept()
+
+    def bt_cancel(self):
+        """
+        Функция вызывается по нажатию кнопки "Отменить"
+        """
+        self.close()
 
 
 if __name__ == '__main__':

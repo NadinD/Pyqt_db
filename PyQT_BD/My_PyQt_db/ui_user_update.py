@@ -109,7 +109,7 @@ class Ui_Dialog_user_update(object):
 
     def retranslateUi(self, Dialog_user_update):
         _translate = QtCore.QCoreApplication.translate
-        Dialog_user_update.setWindowTitle(_translate("Dialog_user_update", "Dialog"))
+        Dialog_user_update.setWindowTitle(_translate("Dialog_user_update", "Обновить данные по сотруднику"))
         self.label.setText(_translate("Dialog_user_update", "ФИО"))
         self.label_2.setText(_translate("Dialog_user_update", "Дата рождения"))
         self.label_3.setText(_translate("Dialog_user_update", "Пол"))

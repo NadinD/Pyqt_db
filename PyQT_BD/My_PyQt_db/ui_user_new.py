@@ -2,11 +2,13 @@
 
 # Form implementation generated from reading ui file 'user_new.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.3
+# Created by: PyQt5 UI code generator 5.13.0
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_Dialog_user_new(object):
     def setupUi(self, Dialog_user_new):
@@ -103,7 +105,7 @@ class Ui_Dialog_user_new(object):
 
     def retranslateUi(self, Dialog_user_new):
         _translate = QtCore.QCoreApplication.translate
-        Dialog_user_new.setWindowTitle(_translate("Dialog_user_new", "Dialog"))
+        Dialog_user_new.setWindowTitle(_translate("Dialog_user_new", "Новый сотрудник"))
         self.label.setText(_translate("Dialog_user_new", "ФИО"))
         self.label_2.setText(_translate("Dialog_user_new", "Дата рождения"))
         self.label_3.setText(_translate("Dialog_user_new", "Пол"))
@@ -112,4 +114,3 @@ class Ui_Dialog_user_new(object):
         self.label_4.setText(_translate("Dialog_user_new", "Подразделение"))
         self.btnUser_Ok.setText(_translate("Dialog_user_new", "Записать"))
         self.btnUser_Cancel.setText(_translate("Dialog_user_new", "Отмена"))
-
