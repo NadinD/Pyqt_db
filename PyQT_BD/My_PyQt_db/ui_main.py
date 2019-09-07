@@ -118,7 +118,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Подача заявок"))
-        self.label.setText(_translate("MainWindow", "Заявки на устранение не исправностей"))
+        self.label.setText(_translate("MainWindow", "Заявки на устранение неисправностей"))
         self.btProblemAdd.setText(_translate("MainWindow", "Добавить заявку"))
         self.btProblemUpdate.setText(_translate("MainWindow", "Обновить заявку"))
         self.btProblemDel.setText(_translate("MainWindow", "Удалить заявку"))

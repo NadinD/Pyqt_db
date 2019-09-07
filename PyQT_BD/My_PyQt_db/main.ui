@@ -41,7 +41,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Заявки на устранение не исправностей</string>
+         <string>Заявки на устранение неисправностей</string>
         </property>
        </widget>
       </item>
